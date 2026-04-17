@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#1E1E1E">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Редактировать задачу"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:gravity="center"
+            android:layout_marginBottom="20dp" />
+
+        <EditText
+            android:id="@+id/editTaskText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Что нужно сделать?"
+            android:inputType="textMultiLine"
+            android:maxLines="4"
+            android:padding="14dp"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B3B3B3"
+            android:background="#2C2C2C"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Дополнительные опции"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#B3B3B3"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <Button
+                android:id="@+id/buttonEditVoice"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="🎤"
+                android:textSize="28sp"
+                android:backgroundTint="#2C2C2C"
+                android:textColor="#FFFFFF"
+                style="@style/Widget.Material3.Button" />
+
+            <Button
+                android:id="@+id/buttonEditDate"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:text="📅"
+                android:textSize="28sp"
+                android:backgroundTint="#2C2C2C"
+                android:textColor="#FFFFFF"
+                style="@style/Widget.Material3.Button" />
+
+            <Button
+                android:id="@+id/buttonEditAttach"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="📎"
+                android:textSize="28sp"
+                android:backgroundTint="#2C2C2C"
+                android:textColor="#FFFFFF"
+                style="@style/Widget.Material3.Button" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textEditDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Дата не выбрана"
+            android:textSize="14sp"
+            android:textColor="#B3B3B3"
+            android:gravity="center"
+            android:padding="12dp"
+            android:background="#2C2C2C"
+            android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+            android:id="@+id/fileManageLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Прикреплённый файл:"
+                android:textSize="14sp"
+                android:textColor="#B3B3B3"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/textEditFile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                android:textColor="#81C784"
+                android:gravity="center"
+                android:padding="12dp"
+                android:background="#2C2C2C"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/buttonRemoveFile"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Удалить файл"
+                android:textSize="16sp"
+                android:backgroundTint="#F44336"
+                android:textColor="#FFFFFF"
+                style="@style/Widget.Material3.Button" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
