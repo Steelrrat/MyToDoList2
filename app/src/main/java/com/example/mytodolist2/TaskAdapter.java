@@ -48,14 +48,14 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Task task = tasks.get(position);
         holder.textViewTask.setText(task.getText());
-        
+
         String dateStr = task.getFormattedDate();
         if (!dateStr.equals("Без даты")) {
             holder.textViewDate.setText("📅 " + dateStr);
         } else {
             holder.textViewDate.setText(dateStr);
         }
-        
+
         if (task.isDone()) {
             holder.textViewCheckbox.setText("☑");
             holder.cardView.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.done_background));
@@ -65,30 +65,23 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
             holder.cardView.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.card_background));
             holder.textViewTask.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.text_primary));
         }
-        
+
         holder.textViewCheckbox.setOnClickListener(v -> doneListener.onToggleDone(position));
-        
-        String reaction = task.getReaction();
-        if (reaction != null) {
+
+        // ИСПРАВЛЕНО: Реакция
+        if (task.hasValidReaction()) {
+            String reaction = task.getReaction();
             switch (reaction) {
-                case "like":
-                    holder.textViewReaction.setText("❤️");
-                    break;
-                case "lightning":
-                    holder.textViewReaction.setText("⚡");
-                    break;
-                case "cat":
-                    holder.textViewReaction.setText("😺");
-                    break;
-                default:
-                    holder.textViewReaction.setVisibility(View.GONE);
-                    break;
+                case "like": holder.textViewReaction.setText("❤️"); break;
+                case "lightning": holder.textViewReaction.setText("⚡"); break;
+                case "cat": holder.textViewReaction.setText("😺"); break;
             }
             holder.textViewReaction.setVisibility(View.VISIBLE);
         } else {
             holder.textViewReaction.setVisibility(View.GONE);
         }
-        
+
+        // ИСПРАВЛЕНО: Файл
         if (task.hasFile()) {
             holder.textViewFileIcon.setVisibility(View.VISIBLE);
         } else {
@@ -96,7 +89,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         }
 
         holder.cardView.setOnClickListener(v -> clickListener.onView(task));
-        holder.cardView.setOnLongClickListener(v -> { editListener.onEdit(position, task); return true; });
+        holder.cardView.setOnLongClickListener(v -> {
+            editListener.onEdit(position, task);
+            return true;
+        });
     }
 
     @Override

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -14,47 +14,30 @@
         android:clipToPadding="false"
         android:scrollbars="vertical" />
 
-    <LinearLayout
+    <!-- Кнопка переключения темы (слева внизу) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabTheme"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
+        android:layout_gravity="bottom|start"
         android:layout_margin="16dp"
-        android:orientation="horizontal">
+        android:src="@android:drawable/ic_menu_recent_history"
+        android:contentDescription="Переключить тему"
+        app:fabSize="normal"
+        app:backgroundTint="#9C27B0"
+        app:tint="#FFFFFF" />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabInfo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
-            android:src="@android:drawable/ic_menu_info_details"
-            android:contentDescription="Инструкция"
-            app:fabSize="normal"
-            app:backgroundTint="#2196F3"
-            app:tint="#FFFFFF"
-            app:maxImageSize="40dp" />
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabTheme"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="0dp"
-            android:layout_marginEnd="24dp"
-            android:src="@android:drawable/ic_menu_edit"
-            android:contentDescription="Ночная тема"
-            app:fabSize="normal"
-            app:backgroundTint="#9C27B0"
-            app:tint="#FFFFFF" />
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabAdd"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_input_add"
-            android:contentDescription="Добавить задачу"
-            app:fabSize="normal"
-            app:backgroundTint="#4CAF50"
-            app:tint="#FFFFFF" />
-
-    </LinearLayout>
+    <!-- Кнопка Добавить задачу (справа внизу) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_input_add"
+        android:contentDescription="Добавить задачу"
+        app:fabSize="normal"
+        app:backgroundTint="#4CAF50"
+        app:tint="#FFFFFF" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
