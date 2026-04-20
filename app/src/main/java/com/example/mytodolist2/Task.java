@@ -19,7 +19,7 @@ public class Task implements Serializable {
         this.id = UUID.randomUUID().toString();
         this.text = text;
         this.date = date;
-        this.fileUri = fileUri;
+        this.fileUri = (fileUri != null && !fileUri.isEmpty() && !fileUri.equals("null") && fileUri.length() > 5) ? fileUri : null;
         this.reaction = null;
         this.done = false;
         this.hour = -1;

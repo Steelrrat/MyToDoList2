@@ -875,8 +875,8 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < backupCount; i++) {
                 String text = prefs.getString("backup_task_" + i, "");
                 if (!text.isEmpty()) {
+                    // Используем правильный конструктор с null для файла
                     Task task = new Task(text, null, null, null, false, -1, -1);
-                    task.setId(UUID.randomUUID().toString());
                     restoredList.add(task);
                 }
             }
