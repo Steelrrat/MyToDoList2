@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -48,16 +48,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:weightSum="4">
 
             <Button
                 android:id="@+id/buttonVoice"
                 android:layout_width="0dp"
-                android:layout_height="56dp"
+                android:layout_height="64dp"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="4dp"
                 android:text="🎤"
-                android:textSize="28sp"
+                android:textSize="32sp"
+                android:padding="8dp"
+                android:minWidth="0dp"
+                android:gravity="center"
                 android:backgroundTint="#2C2C2C"
                 android:textColor="#FFFFFF"
                 style="@style/Widget.Material3.Button" />
@@ -65,12 +70,31 @@
             <Button
                 android:id="@+id/buttonDate"
                 android:layout_width="0dp"
-                android:layout_height="56dp"
+                android:layout_height="64dp"
                 android:layout_weight="1"
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:text="📅"
-                android:textSize="28sp"
+                android:textSize="32sp"
+                android:padding="8dp"
+                android:minWidth="0dp"
+                android:gravity="center"
+                android:backgroundTint="#2C2C2C"
+                android:textColor="#FFFFFF"
+                style="@style/Widget.Material3.Button" />
+
+            <Button
+                android:id="@+id/buttonTime"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:text="⏰"
+                android:textSize="32sp"
+                android:padding="8dp"
+                android:minWidth="0dp"
+                android:gravity="center"
                 android:backgroundTint="#2C2C2C"
                 android:textColor="#FFFFFF"
                 style="@style/Widget.Material3.Button" />
@@ -78,11 +102,14 @@
             <Button
                 android:id="@+id/buttonAttach"
                 android:layout_width="0dp"
-                android:layout_height="56dp"
+                android:layout_height="64dp"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="4dp"
                 android:text="📎"
-                android:textSize="28sp"
+                android:textSize="32sp"
+                android:padding="8dp"
+                android:minWidth="0dp"
+                android:gravity="center"
                 android:backgroundTint="#2C2C2C"
                 android:textColor="#FFFFFF"
                 style="@style/Widget.Material3.Button" />

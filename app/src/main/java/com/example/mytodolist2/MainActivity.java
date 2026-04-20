@@ -1,6 +1,7 @@
 package com.example.mytodolist2;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.ClipData;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "TodoPrefs";
     private static final String PREFS_THEME = "theme_prefs";
     private static final String THEME_KEY = "is_dark_theme";
+    private static final String PREFS_EXACT_ALARM_SHOWN = "exact_alarm_shown";
     private ActivityResultLauncher<Intent> voiceLauncher;
     private ActivityResultLauncher<String> fileLauncher;
 
@@ -120,8 +122,37 @@ public class MainActivity extends AppCompatActivity {
         FloatingActionButton fabTheme = findViewById(R.id.fabTheme);
         fabTheme.setOnClickListener(v -> toggleTheme());
 
-        // ЗАПУСК ЦЕПОЧКИ НАСТРОЕК
         showWelcomeMessage();
+
+        // ✅ ПЕРЕМЕСТИТЬ СЮДА (ПОСЛЕ инициализации adapter)
+        restoreTasksFromBackup();
+    }
+
+    // ========== НОВЫЙ МЕТОД ДЛЯ БУДИЛЬНИКОВ ==========
+    private void checkAndShowExactAlarmForFirstTime() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+            boolean alreadyShown = prefs.getBoolean(PREFS_EXACT_ALARM_SHOWN, false);
+
+            if (alreadyShown) {
+                return;
+            }
+
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("⏰ Разрешение на точные уведомления")
+                        .setMessage("Чтобы уведомления приходили ТОЧНО ВОВРЕМЯ, включите разрешение на точные будильники.\n\nНажмите «Открыть настройки» и включите переключатель.")
+                        .setPositiveButton("Открыть настройки", (dialog, which) -> {
+                            Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Не сейчас", null)
+                        .show();
+
+                prefs.edit().putBoolean(PREFS_EXACT_ALARM_SHOWN, true).apply();
+            }
+        }
     }
 
     private void loadTasksAndMigrate() {
@@ -234,8 +265,7 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(this, "Голосовой ввод будет недоступен", Toast.LENGTH_LONG).show();
                     }
 
-                    // ПОСЛЕ РАЗРЕШЕНИЙ - ПОКАЗЫВАЕМ БАТАРЕЮ И БУДИЛЬНИКИ
-                    showBatteryOptimizationAndAlarm();
+                    requestBatteryOptimization();
                 }
         );
     }
@@ -252,42 +282,11 @@ public class MainActivity extends AppCompatActivity {
                             "✓ Долгое нажатие - редактировать")
                     .setPositiveButton("Понятно", (d, w) -> {
                         prefs.edit().putBoolean("welcome_shown", true).apply();
-                        startPermissionsFlow();
+                        requestPermissionsNow();
                     })
                     .show();
         } else {
-            startPermissionsFlow();
-        }
-    }
-
-    private void startPermissionsFlow() {
-        requestPermissionsNow();
-    }
-
-    private void showBatteryOptimizationAndAlarm() {
-        // Сначала батарея
-        requestBatteryOptimization();
-
-        // Затем будильники (через 1 секунду)
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            checkExactAlarmPermission();
-        }, 1000);
-    }
-
-    private void requestAllPermissionsWithExplanation() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        boolean permissionsRequested = prefs.getBoolean("permissions_requested", false);
-        if (!permissionsRequested) {
-            new AlertDialog.Builder(this)
-                    .setTitle("📱 Настройка приложения")
-                    .setMessage("Для полноценной работы приложению нужны разрешения:\n\n" +
-                            "🔔 УВЕДОМЛЕНИЯ - чтобы напоминать о задачах\n" +
-                            "🎤 МИКРОФОН - для голосового ввода\n" +
-                            "⏰ ТОЧНЫЕ БУДИЛЬНИКИ - для точных напоминаний")
-                    .setPositiveButton("Разрешить", (dialog, which) -> requestPermissionsNow())
-                    .setNegativeButton("Настроить позже", null)
-                    .show();
-            prefs.edit().putBoolean("permissions_requested", true).apply();
+            requestPermissionsNow();
         }
     }
 
@@ -306,8 +305,7 @@ public class MainActivity extends AppCompatActivity {
         if (!permissionsList.isEmpty()) {
             permissionsLauncher.launch(permissionsList.toArray(new String[0]));
         } else {
-            // Если разрешения уже есть - сразу батарея и будильники
-            showBatteryOptimizationAndAlarm();
+            requestBatteryOptimization();
         }
     }
 
@@ -319,25 +317,14 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void checkExactAlarmPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            android.app.AlarmManager alarmManager = (android.app.AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("⏰ Настройка точных уведомлений")
-                        .setMessage("Для получения уведомлений ровно в назначенное время:\n\n1. Нажмите «Открыть настройки»\n2. Найдите «Разрешить точные будильники»\n3. Включите переключатель")
-                        .setPositiveButton("Открыть настройки", (dialog, which) -> {
-                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                            intent.setData(Uri.parse("package:" + getPackageName()));
-                            startActivity(intent);
-                        })
-                        .setNegativeButton("Напомнить позже", null)
-                        .show();
-            }
-        }
-    }
-
     private void requestBatteryOptimization() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        boolean alreadyShown = prefs.getBoolean("battery_optimization_shown", false);
+
+        if (alreadyShown) {
+            return;
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
             if (!pm.isIgnoringBatteryOptimizations(getPackageName())) {
@@ -349,8 +336,10 @@ public class MainActivity extends AppCompatActivity {
                             intent.setData(Uri.parse("package:" + getPackageName()));
                             startActivity(intent);
                         })
-                        .setNegativeButton("Позже", null)
+                        .setNegativeButton("Не напоминать", null)
                         .show();
+
+                prefs.edit().putBoolean("battery_optimization_shown", true).apply();
             }
         }
     }
@@ -393,9 +382,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String getFileName(Uri uri) {
         if (uri == null) return "Файл";
-
         String name = "Файл";
-
         if ("file".equals(uri.getScheme())) {
             String path = uri.getPath();
             if (path != null && path.contains("/")) {
@@ -403,7 +390,6 @@ public class MainActivity extends AppCompatActivity {
             }
             return name;
         }
-
         try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
                 int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
@@ -420,7 +406,6 @@ public class MainActivity extends AppCompatActivity {
                 name = path.substring(path.lastIndexOf("/") + 1);
             }
         }
-
         return name;
     }
 
@@ -580,6 +565,7 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
+    // ========== ИСПРАВЛЕННЫЙ showAddDialog ==========
     private void showAddDialog() {
         tempDate = null;
         tempFileUri = null;
@@ -615,6 +601,7 @@ public class MainActivity extends AppCompatActivity {
                         saveTasksDebounced();
 
                         if (tempHour >= 0 && tempMinute >= 0) {
+                            checkAndShowExactAlarmForFirstTime();
                             NotificationHelper.scheduleNotification(MainActivity.this, newTask);
                         }
                         Toast.makeText(MainActivity.this, "Добавлено", Toast.LENGTH_SHORT).show();
@@ -682,6 +669,7 @@ public class MainActivity extends AppCompatActivity {
 
                         NotificationHelper.cancelNotification(MainActivity.this, oldTask.getId());
                         if (tempHour >= 0 && tempMinute >= 0) {
+                            checkAndShowExactAlarmForFirstTime();
                             NotificationHelper.scheduleNotification(MainActivity.this, updatedTask);
                         }
                         Toast.makeText(MainActivity.this, "Изменено", Toast.LENGTH_SHORT).show();
@@ -816,28 +804,44 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveTasksImmediate() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        SharedPreferences.Editor ed = prefs.edit();
 
+        // ЗАЩИТА ОТ СЛУЧАЙНОГО УДАЛЕНИЯ ВСЕХ ЗАДАЧ
+        if (taskList.isEmpty()) {
+            int previousCount = prefs.getInt("count", -1);
+            if (previousCount > 0) {
+                android.util.Log.e("SAVE", "Попытка сохранить пустой список! Было задач: " + previousCount + " - ОТМЕНА СОХРАНЕНИЯ");
+                return;
+            }
+        }
+
+        SharedPreferences.Editor ed = prefs.edit();
         ed.putInt("count", taskList.size());
         for (int i = 0; i < taskList.size(); i++) {
             Task t = taskList.get(i);
             ed.putString("task_" + i, t.getText());
             if (t.getDate() != null) ed.putLong("date_" + i, t.getDate().getTime());
-
             if (t.hasFile() && t.getFileUri() != null) {
                 ed.putString("file_" + i, t.getFileUri());
             }
-
             if (t.hasValidReaction()) {
                 ed.putString("reaction_" + i, t.getReaction());
             }
-
             ed.putBoolean("done_" + i, t.isDone());
             ed.putInt("hour_" + i, t.getHour());
             ed.putInt("minute_" + i, t.getMinute());
             ed.putString("id_" + i, t.getId());
         }
         ed.apply();
+
+        // СОЗДАНИЕ РЕЗЕРВНОЙ КОПИИ
+        if (taskList.size() > 0) {
+            SharedPreferences.Editor backupEd = prefs.edit();
+            backupEd.putInt("backup_count", taskList.size());
+            for (int i = 0; i < taskList.size(); i++) {
+                backupEd.putString("backup_task_" + i, taskList.get(i).getText());
+            }
+            backupEd.apply();
+        }
     }
 
     @Override
@@ -862,5 +866,27 @@ public class MainActivity extends AppCompatActivity {
         saveHandler.removeCallbacks(saveRunnable);
         saveTasksImmediate();
     }
+    private void restoreTasksFromBackup() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int backupCount = prefs.getInt("backup_count", 0);
 
+        if (backupCount > 0 && taskList.isEmpty()) {
+            ArrayList<Task> restoredList = new ArrayList<>();
+            for (int i = 0; i < backupCount; i++) {
+                String text = prefs.getString("backup_task_" + i, "");
+                if (!text.isEmpty()) {
+                    Task task = new Task(text, null, null, null, false, -1, -1);
+                    task.setId(UUID.randomUUID().toString());
+                    restoredList.add(task);
+                }
+            }
+            if (!restoredList.isEmpty()) {
+                taskList.clear();
+                taskList.addAll(restoredList);
+                sortTasks();
+                taskAdapter.notifyDataSetChanged();
+                saveTasksImmediate();
+            }
+        }
+    }
 }
