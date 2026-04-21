@@ -1,13 +1,13 @@
-plugins {
+﻿plugins {
     id("com.android.application")
 }
 
 android {
-    namespace = "com.example.mytodolist2"
+    namespace = "com.capitalfoto.voicediary"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.mytodolist2"
+        applicationId = "com.capitalfoto.voicediary"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

@@ -1,0 +1,14 @@
+﻿dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    versionCatalogs {
+        create("libs") {
+            from(files("gradle/libs.versions.toml"))
+        }
+    }
+}
+
+rootProject.name = "MyToDoList2"
+include(":app")

@@ -1,3 +1,4 @@
-    <resources>
-        <string name="app_name">Ежедневник с голосовым помощником</string>
-    </resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Голосовой ежедневник</string>
+</resources>
