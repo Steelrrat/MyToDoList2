@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     private final Handler saveHandler = new Handler(Looper.getMainLooper());
     private final Runnable saveRunnable = this::saveTasksImmediate;
 
+    private final Object saveLock = new Object();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
@@ -411,15 +412,21 @@ public class MainActivity extends AppCompatActivity {
         boolean newState = !task.isDone();
         task.setDone(newState);
 
-        // Сохраняем
         saveTasksImmediate();
 
-        // Обновляем только этот элемент (не весь список)
-        taskAdapter.notifyItemChanged(position);
+        int oldPosition = position;
+        sortTasks();
+        int newPosition = taskList.indexOf(task);
+
+        if (newPosition != oldPosition) {
+            taskAdapter.notifyItemMoved(oldPosition, newPosition);
+            taskAdapter.notifyItemChanged(newPosition);
+        } else {
+            taskAdapter.notifyItemChanged(oldPosition);
+        }
 
         Toast.makeText(this, newState ? "✅ Выполнено" : "❌ Отмена", Toast.LENGTH_SHORT).show();
 
-        // Если задача отмечена как выполненная - отменяем уведомление
         if (newState && task.hasTime()) {
             NotificationHelper.cancelNotification(this, task.getId());
         }
@@ -858,50 +865,52 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveTasksDebounced() {
         saveHandler.removeCallbacks(saveRunnable);
-        saveHandler.postDelayed(saveRunnable, 300);
+        saveHandler.postDelayed(saveRunnable, 500);
     }
 
     private void saveTasksImmediate() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        synchronized (saveLock) {
+            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
-        // Защита от случайного удаления всех задач
-        if (taskList.isEmpty()) {
-            int previousCount = prefs.getInt("count", -1);
-            if (previousCount > 0) {
-                Log.e("SAVE", "Попытка сохранить пустой список! Было задач: " + previousCount);
-                // Восстанавливаем из резервной копии
-                restoreTasksFromBackup();
-                return;
+            // Защита от случайного удаления всех задач
+            if (taskList.isEmpty()) {
+                int previousCount = prefs.getInt("count", -1);
+                if (previousCount > 0) {
+                    Log.e("SAVE", "Попытка сохранить пустой список! Было задач: " + previousCount);
+                    // Восстанавливаем из резервной копии
+                    restoreTasksFromBackup();
+                    return;
+                }
             }
-        }
 
-        SharedPreferences.Editor ed = prefs.edit();
-        ed.putInt("count", taskList.size());
-        for (int i = 0; i < taskList.size(); i++) {
-            Task t = taskList.get(i);
-            ed.putString("task_" + i, t.getText());
-            if (t.getDate() != null) {
-                ed.putLong("date_" + i, t.getDate().getTime());
-            } else {
-                ed.remove("date_" + i);
+            SharedPreferences.Editor ed = prefs.edit();
+            ed.putInt("count", taskList.size());
+            for (int i = 0; i < taskList.size(); i++) {
+                Task t = taskList.get(i);
+                ed.putString("task_" + i, t.getText());
+                if (t.getDate() != null) {
+                    ed.putLong("date_" + i, t.getDate().getTime());
+                } else {
+                    ed.remove("date_" + i);
+                }
+                if (t.hasFile() && t.getFileUri() != null) {
+                    ed.putString("file_" + i, t.getFileUri());
+                } else {
+                    ed.remove("file_" + i);
+                }
+                if (t.hasValidReaction()) {
+                    ed.putString("reaction_" + i, t.getReaction());
+                } else {
+                    ed.remove("reaction_" + i);
+                }
+                ed.putBoolean("done_" + i, t.isDone());
+                ed.putInt("hour_" + i, t.getHour());
+                ed.putInt("minute_" + i, t.getMinute());
+                ed.putString("id_" + i, t.getId());
             }
-            if (t.hasFile() && t.getFileUri() != null) {
-                ed.putString("file_" + i, t.getFileUri());
-            } else {
-                ed.remove("file_" + i);
-            }
-            if (t.hasValidReaction()) {
-                ed.putString("reaction_" + i, t.getReaction());
-            } else {
-                ed.remove("reaction_" + i);
-            }
-            ed.putBoolean("done_" + i, t.isDone());
-            ed.putInt("hour_" + i, t.getHour());
-            ed.putInt("minute_" + i, t.getMinute());
-            ed.putString("id_" + i, t.getId());
+            ed.apply();
         }
-        ed.apply();
-    }
+   }
 
     @Override
     protected void onNewIntent(Intent intent) {
