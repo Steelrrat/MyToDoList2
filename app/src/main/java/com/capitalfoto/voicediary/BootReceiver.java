@@ -21,6 +21,7 @@ public class BootReceiver extends BroadcastReceiver {
                 int minute = prefs.getInt("minute_" + i, -1);
                 String id = prefs.getString("id_" + i, "");
                 String filePath = prefs.getString("file_" + i, null);
+                boolean done = prefs.getBoolean("done_" + i, false);  // ДОБАВЛЕНО
 
                 // Проверяем, существует ли файл
                 if (filePath != null) {
@@ -30,7 +31,8 @@ public class BootReceiver extends BroadcastReceiver {
                     }
                 }
 
-                if (hour >= 0 && minute >= 0 && !text.isEmpty()) {
+                // ИСПРАВЛЕНО: добавляем проверку !done
+                if (hour >= 0 && minute >= 0 && !text.isEmpty() && !done) {
                     Task task = new Task(text, date > 0 ? new java.util.Date(date) : null, filePath, null, false, hour, minute);
                     task.setId(id);
                     NotificationHelper.scheduleNotification(context, task);

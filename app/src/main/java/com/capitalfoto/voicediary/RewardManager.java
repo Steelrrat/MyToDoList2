@@ -17,7 +17,7 @@ public class RewardManager {
     // ============================================================
     // ⚠️ ВАШ РЕАЛЬНЫЙ SLOT_ID из кабинета VK Ads
     // ============================================================
-   private static final int SLOT_ID = 2015946;
+    private static final int SLOT_ID = 2015946;
 
     private RewardedAd rewardedAd;
     private Context context;
@@ -134,9 +134,11 @@ public class RewardManager {
         }
     }
 
+    // ИСПРАВЛЕНО: правильная очистка для предотвращения утечек памяти
     public void destroy() {
         Log.d(TAG, "Destroying RewardManager");
         if (rewardedAd != null) {
+            rewardedAd.setListener(null);  // очищаем listener
             rewardedAd.destroy();
             rewardedAd = null;
         }

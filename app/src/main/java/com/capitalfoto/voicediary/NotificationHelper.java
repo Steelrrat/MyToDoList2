@@ -8,7 +8,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.os.PowerManager;
 import androidx.core.app.NotificationCompat;
 import java.util.Calendar;
 
@@ -79,7 +78,16 @@ public class NotificationHelper {
 
             long triggerTime = calendar.getTimeInMillis();
 
-            // ВСЕГДА используем точные методы (без проверки разрешений здесь)
+            // ИСПРАВЛЕНО: проверка разрешения на точные будильники для Android 12+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (!alarmManager.canScheduleExactAlarms()) {
+                    // Нет разрешения - используем неточный метод
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+                    return;
+                }
+            }
+
+            // Точные методы только если есть разрешение
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {

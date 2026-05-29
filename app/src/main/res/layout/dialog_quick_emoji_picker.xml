@@ -5,19 +5,20 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
+    android:paddingBottom="24dp"
     android:background="?attr/colorSurface">
 
+    <!-- ДОБАВЛЯЕМ ЗАГОЛОВОК В XML -->
     <TextView
-        android:id="@+id/currentEmojiText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="14sp"
+        android:text="Выберите смайл"
+        android:textSize="20sp"
         android:textStyle="bold"
+        android:textColor="?attr/colorOnSurface"
         android:gravity="center"
-        android:padding="12dp"
-        android:background="?attr/colorSurfaceVariant"
         android:layout_marginBottom="16dp"
-        android:visibility="gone" />
+        android:layout_marginTop="4dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/quickEmojiRecyclerView"

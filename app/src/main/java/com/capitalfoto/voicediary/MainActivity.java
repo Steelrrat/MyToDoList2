@@ -164,23 +164,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showQuickEmojiPicker(Task task, int position) {
-        // Создаем диалог с сеткой эмодзи
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_quick_emoji_picker, null);
 
         RecyclerView emojiRecyclerView = view.findViewById(R.id.quickEmojiRecyclerView);
         Button unlockAllButton = view.findViewById(R.id.quickUnlockAllButton);
         TextView hintText = view.findViewById(R.id.quickUnlockHintText);
-        TextView currentEmojiText = view.findViewById(R.id.currentEmojiText);
-
-        // Показываем текущий смайл задачи
-        String currentReaction = task.getReaction();
-        if (currentReaction != null && !currentReaction.isEmpty()) {
-            currentEmojiText.setText("Текущий смайл: " + currentReaction);
-            currentEmojiText.setVisibility(View.VISIBLE);
-        } else {
-            currentEmojiText.setVisibility(View.GONE);
-        }
 
         // Настройка сетки смайлов
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 6);
@@ -208,7 +197,6 @@ public class MainActivity extends AppCompatActivity {
         EmojiRecyclerAdapter adapter = new EmojiRecyclerAdapter(
                 allEmojis,
                 emoji -> {
-                    // Обновляем реакцию задачи
                     task.setReaction(emoji);
                     saveTasksDebounced();
                     taskAdapter.notifyItemChanged(position);
@@ -217,7 +205,8 @@ public class MainActivity extends AppCompatActivity {
         );
         emojiRecyclerView.setAdapter(adapter);
 
-        builder.setTitle("Выберите смайл")
+        // Убираем заголовок из диалога (теперь он в XML)
+        builder.setTitle(null)
                 .setView(view)
                 .setNegativeButton("Отмена", null)
                 .show();
@@ -773,8 +762,6 @@ public class MainActivity extends AppCompatActivity {
         ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Загрузка рекламы...");
         progressDialog.setCancelable(false);
-
-        // ВСЕГДА показываем прогресс (без проверки isMockMode)
         progressDialog.show();
 
         rewardManager.showRewardedAd(
@@ -794,9 +781,9 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
-        // Таймаут для скрытия прогресса (без проверки isMockMode)
+        // ИСПРАВЛЕНО: добавлена проверка isFinishing() и isDestroyed()
         new Handler().postDelayed(() -> {
-            if (progressDialog.isShowing()) {
+            if (progressDialog.isShowing() && !isFinishing() && !isDestroyed()) {
                 progressDialog.dismiss();
                 Toast.makeText(this, "Реклама не загрузилась", Toast.LENGTH_SHORT).show();
             }
@@ -844,21 +831,21 @@ public class MainActivity extends AppCompatActivity {
         fileLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
-                    if (uri != null) {
-                        tempStoredFilePath = copyFileToInternalStorage(uri);
-                        if (currentDialog != null) {
-                            View view = currentDialog.findViewById(R.id.textAttachedFile);
-                            if (view == null) view = currentDialog.findViewById(R.id.textEditFile);
-                            if (view instanceof TextView) {
-                                TextView tv = (TextView) view;
-                                if (tempStoredFilePath != null) {
-                                    String fileName = getFileName(uri);
-                                    tv.setText("📎 " + fileName);
-                                    tv.setVisibility(View.VISIBLE);
-                                } else {
-                                    tv.setText("Ошибка прикрепления");
-                                    tv.setVisibility(View.VISIBLE);
-                                }
+                    if (uri != null && currentDialog != null) {
+                        String newFilePath = copyFileToInternalStorage(uri);
+                        if (newFilePath != null) {
+                            tempStoredFilePath = newFilePath;
+
+                            // Обновляем UI в диалоге - используем CardView
+                            LinearLayout fileManageLayout = currentDialog.findViewById(R.id.fileManageLayout);
+                            CardView btnAttachCard = currentDialog.findViewById(R.id.buttonEditAttachCard);
+                            TextView txtFile = currentDialog.findViewById(R.id.textEditFile);
+
+                            String fileName = getFileName(uri);
+                            txtFile.setText(fileName);
+                            fileManageLayout.setVisibility(View.VISIBLE);
+                            if (btnAttachCard != null) {
+                                btnAttachCard.setVisibility(View.GONE);  // скрываем карточку
                             }
                         }
                     }
@@ -877,34 +864,73 @@ public class MainActivity extends AppCompatActivity {
         EditText editText = view.findViewById(R.id.editTaskText);
         currentEditText = editText;
 
+        // Кнопка голосового ввода
         Button btnVoice = view.findViewById(R.id.buttonVoice);
-        Button btnDate = view.findViewById(R.id.buttonDate);
-        Button btnTime = view.findViewById(R.id.buttonTime);
-        Button btnAttach = view.findViewById(R.id.buttonAttach);
+        btnVoice.setOnClickListener(v -> startVoiceInput());
+
+        // НОВАЯ КАРТОЧКА для прикрепления файла
+        CardView btnAttachCard = view.findViewById(R.id.buttonAttachCard);
+        btnAttachCard.setOnClickListener(v -> fileLauncher.launch("*/*"));
+
+        // Крестик удаления файла
+        TextView btnRemoveFile = view.findViewById(R.id.buttonRemoveFile);
+
+        // TextView для отображения
         TextView txtDate = view.findViewById(R.id.textSelectedDate);
+        TextView txtTime = view.findViewById(R.id.textSelectedTime);
         TextView txtFile = view.findViewById(R.id.textAttachedFile);
 
-        // Находим карточки (если в dialog_add_task.xml тоже добавили карточки)
-        // Если нет, то пропустите этот блок
+        // Контейнер с файлом
+        LinearLayout fileManageLayout = view.findViewById(R.id.fileManageLayout);
 
         // Определяем цвет темы
         SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
         boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
-        int accentColor;
-        if (isDark) {
-            accentColor = ContextCompat.getColor(this, R.color.dark_accent);
-        } else {
-            accentColor = ContextCompat.getColor(this, R.color.light_accent);
-        }
+        int accentColor = isDark ?
+                ContextCompat.getColor(this, R.color.dark_accent) :
+                ContextCompat.getColor(this, R.color.light_accent);
 
-        // Устанавливаем цвет текста
         txtDate.setTextColor(accentColor);
+        txtTime.setTextColor(accentColor);
         txtFile.setTextColor(accentColor);
 
-        btnVoice.setOnClickListener(v -> startVoiceInput());
-        btnDate.setOnClickListener(v -> showDatePicker(txtDate));
-        btnTime.setOnClickListener(v -> showTimePicker(txtDate, null));
-        btnAttach.setOnClickListener(v -> fileLauncher.launch("*/*"));
+        updateDateDisplay(txtDate);
+        updateTimeDisplay(txtTime);
+
+        // Управление видимостью
+        if (tempStoredFilePath != null && !tempStoredFilePath.isEmpty() && isFileExists(tempStoredFilePath)) {
+            File file = new File(tempStoredFilePath);
+            String fileName = file.getName();
+            if (fileName.contains("_") && fileName.indexOf("_") < fileName.length() - 1) {
+                txtFile.setText(fileName.substring(fileName.indexOf("_") + 1));
+            } else {
+                txtFile.setText(fileName);
+            }
+            fileManageLayout.setVisibility(View.VISIBLE);
+            btnAttachCard.setVisibility(View.GONE);
+        } else {
+            fileManageLayout.setVisibility(View.GONE);
+            btnAttachCard.setVisibility(View.VISIBLE);
+        }
+
+        // Обработчик удаления файла
+        btnRemoveFile.setOnClickListener(v -> {
+            tempStoredFilePath = null;
+            fileManageLayout.setVisibility(View.GONE);
+            btnAttachCard.setVisibility(View.VISIBLE);
+            txtFile.setText("");
+            Toast.makeText(this, "Файл удален", Toast.LENGTH_SHORT).show();
+        });
+
+        // Карточка файла - клик для замены
+        CardView fileCardView = view.findViewById(R.id.fileCardView);
+        fileCardView.setOnClickListener(v -> fileLauncher.launch("*/*"));
+
+        // Карточки даты и времени
+        CardView dateCardView = view.findViewById(R.id.dateCardView);
+        CardView timeCardView = view.findViewById(R.id.timeCardView);
+        dateCardView.setOnClickListener(v -> showDatePicker(txtDate));
+        timeCardView.setOnClickListener(v -> showTimePicker(txtDate, txtTime));
 
         AlertDialog dialog = builder.setView(view)
                 .setPositiveButton("Добавить", (d, which) -> {
@@ -929,17 +955,11 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton("Отмена", (d, w) -> clearDialogReferences())
                 .create();
 
-        // Устанавливаем цвет кнопок диалога
         dialog.setOnShowListener(dialogInterface -> {
             Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-
-            if (positiveButton != null) {
-                positiveButton.setTextColor(accentColor);
-            }
-            if (negativeButton != null) {
-                negativeButton.setTextColor(accentColor);
-            }
+            if (positiveButton != null) positiveButton.setTextColor(accentColor);
+            if (negativeButton != null) negativeButton.setTextColor(accentColor);
         });
 
         dialog.setOnDismissListener(dialogInterface -> clearDialogReferences());
@@ -960,61 +980,78 @@ public class MainActivity extends AppCompatActivity {
         editText.setText(oldTask.getText());
         editText.selectAll();
 
+        // Кнопка голосового ввода
         Button btnVoice = view.findViewById(R.id.buttonEditVoice);
-        Button btnDate = view.findViewById(R.id.buttonEditDate);
-        Button btnTime = view.findViewById(R.id.buttonEditTime);
-        Button btnAttach = view.findViewById(R.id.buttonEditAttach);
-        TextView txtDate = view.findViewById(R.id.textEditDate);
-        TextView txtTime = view.findViewById(R.id.textEditTime);  // НОВЫЙ TextView для времени
-        TextView txtFile = view.findViewById(R.id.textEditFile);
-        LinearLayout fileManageLayout = view.findViewById(R.id.fileManageLayout);
-        CardView dateCardView = view.findViewById(R.id.dateCardView);
-        CardView timeCardView = view.findViewById(R.id.timeCardView);  // НОВАЯ карточка времени
-        CardView fileCardView = view.findViewById(R.id.fileCardView);
+        btnVoice.setOnClickListener(v -> startVoiceInput());
 
-        // Определяем цвета темы
+        // НОВАЯ КАРТОЧКА для прикрепления файла (вместо кнопки)
+        CardView btnAttachCard = view.findViewById(R.id.buttonEditAttachCard);
+        btnAttachCard.setOnClickListener(v -> fileLauncher.launch("*/*"));
+
+        // Крестик удаления файла
+        TextView btnRemoveFile = view.findViewById(R.id.buttonRemoveFile);
+
+        // TextView для отображения
+        TextView txtDate = view.findViewById(R.id.textEditDate);
+        TextView txtTime = view.findViewById(R.id.textEditTime);
+        TextView txtFile = view.findViewById(R.id.textEditFile);
+
+        // Контейнер с файлом
+        LinearLayout fileManageLayout = view.findViewById(R.id.fileManageLayout);
+
+        // Цвета темы
         SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
         boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
-        int accentColor;
-        if (isDark) {
-            accentColor = ContextCompat.getColor(this, R.color.dark_accent);
-        } else {
-            accentColor = ContextCompat.getColor(this, R.color.light_accent);
-        }
+        int accentColor = isDark ?
+                ContextCompat.getColor(this, R.color.dark_accent) :
+                ContextCompat.getColor(this, R.color.light_accent);
 
-        // Устанавливаем цвет текста для даты, времени и файла
         txtDate.setTextColor(accentColor);
         txtTime.setTextColor(accentColor);
         txtFile.setTextColor(accentColor);
 
-        // Обновляем отображение даты и времени
         updateDateDisplay(txtDate);
-        updateTimeDisplay(txtTime);  // НОВЫЙ метод для времени
+        updateTimeDisplay(txtTime);
 
+        // ============================================
+        // Управление видимостью карточки прикрепления и блока файла
+        // ============================================
         if (tempStoredFilePath != null && !tempStoredFilePath.isEmpty() && isFileExists(tempStoredFilePath)) {
+            // Есть файл - показываем блок с файлом, скрываем карточку прикрепления
             File file = new File(tempStoredFilePath);
             String fileName = file.getName();
             if (fileName.contains("_") && fileName.indexOf("_") < fileName.length() - 1) {
-                String displayName = fileName.substring(fileName.indexOf("_") + 1);
-                txtFile.setText(displayName);
+                txtFile.setText(fileName.substring(fileName.indexOf("_") + 1));
             } else {
                 txtFile.setText(fileName);
             }
             fileManageLayout.setVisibility(View.VISIBLE);
-        } else if (tempStoredFilePath != null) {
+            btnAttachCard.setVisibility(View.GONE);  // ← карточка СКРЫТА
+        } else {
+            // Нет файла - скрываем блок с файлом, показываем карточку прикрепления
             tempStoredFilePath = null;
+            fileManageLayout.setVisibility(View.GONE);
+            btnAttachCard.setVisibility(View.VISIBLE);  // ← карточка ВИДИМА
         }
 
-        // Обработчики для кнопок
-        btnVoice.setOnClickListener(v -> startVoiceInput());
-        btnDate.setOnClickListener(v -> showDatePicker(txtDate));
-        btnTime.setOnClickListener(v -> showTimePicker(txtDate, txtTime));  // Обновленный метод
-        btnAttach.setOnClickListener(v -> fileLauncher.launch("*/*"));
+        // Удаление файла (крестик)
+        btnRemoveFile.setOnClickListener(v -> {
+            tempStoredFilePath = null;
+            fileManageLayout.setVisibility(View.GONE);
+            btnAttachCard.setVisibility(View.VISIBLE);  // ← показываем карточку
+            txtFile.setText("");
+            Toast.makeText(this, "Файл удален", Toast.LENGTH_SHORT).show();
+        });
 
-        // Обработчики для кликабельных карточек
-        dateCardView.setOnClickListener(v -> showDatePicker(txtDate));
-        timeCardView.setOnClickListener(v -> showTimePicker(txtDate, txtTime));  // Открывает выбор времени
+        // Карточка файла - клик для замены
+        CardView fileCardView = view.findViewById(R.id.fileCardView);
         fileCardView.setOnClickListener(v -> fileLauncher.launch("*/*"));
+
+        // Карточки даты и времени
+        CardView dateCardView = view.findViewById(R.id.dateCardView);
+        CardView timeCardView = view.findViewById(R.id.timeCardView);
+        dateCardView.setOnClickListener(v -> showDatePicker(txtDate));
+        timeCardView.setOnClickListener(v -> showTimePicker(txtDate, txtTime));
 
         AlertDialog dialog = builder.setView(view)
                 .setPositiveButton("Сохранить", (d, which) -> {
@@ -1023,7 +1060,6 @@ public class MainActivity extends AppCompatActivity {
                         Task updatedTask = new Task(newText, tempDate, tempStoredFilePath,
                                 oldTask.getReaction(), oldTask.isDone(), tempHour, tempMinute);
                         updatedTask.setId(oldTask.getId());
-
                         if (updatedTask.getId() == null || updatedTask.getId().isEmpty()) {
                             updatedTask.setId(UUID.randomUUID().toString());
                         }
@@ -1038,11 +1074,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         if (tempHour >= 0 && tempMinute >= 0 && !updatedTask.isDone()) {
-                            try {
-                                NotificationHelper.scheduleNotification(MainActivity.this, updatedTask);
-                            } catch (Exception e) {
-                                Log.e("EditDialog", "scheduleNotification error", e);
-                            }
+                            NotificationHelper.scheduleNotification(MainActivity.this, updatedTask);
                         }
                         Toast.makeText(MainActivity.this, "Изменено", Toast.LENGTH_SHORT).show();
                     } else {
@@ -1053,17 +1085,11 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton("Отмена", (d, w) -> clearDialogReferences())
                 .create();
 
-        // Устанавливаем цвет кнопок диалога
         dialog.setOnShowListener(dialogInterface -> {
             Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-
-            if (positiveButton != null) {
-                positiveButton.setTextColor(accentColor);
-            }
-            if (negativeButton != null) {
-                negativeButton.setTextColor(accentColor);
-            }
+            if (positiveButton != null) positiveButton.setTextColor(accentColor);
+            if (negativeButton != null) negativeButton.setTextColor(accentColor);
         });
 
         dialog.setOnDismissListener(dialogInterface -> clearDialogReferences());

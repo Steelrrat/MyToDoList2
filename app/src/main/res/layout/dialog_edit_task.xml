@@ -21,7 +21,7 @@
             android:gravity="center"
             android:layout_marginBottom="20dp" />
 
-        <!-- Карточка с текстом задачи -->
+        <!-- Карточка с текстом задачи и кнопкой голосового ввода -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -30,105 +30,48 @@
             app:cardBackgroundColor="?attr/colorSurfaceVariant"
             android:layout_marginBottom="20dp">
 
-            <EditText
-                android:id="@+id/editTaskText"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Что нужно сделать?"
-                android:inputType="textMultiLine"
-                android:maxLines="4"
-                android:padding="16dp"
-                android:textSize="16sp"
-                android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOnSurfaceVariant"
-                android:background="@android:color/transparent" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp">
+
+                <EditText
+                    android:id="@+id/editTaskText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Что нужно сделать?"
+                    android:inputType="textMultiLine"
+                    android:maxLines="4"
+                    android:padding="12dp"
+                    android:textSize="16sp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
+                    android:background="@android:color/transparent" />
+
+                <!-- Кнопка голосового ввода -->
+                <Button
+                    android:id="@+id/buttonEditVoice"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:text="🎤"
+                    android:textSize="24sp"
+                    android:backgroundTint="?attr/colorPrimary"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginStart="8dp"
+                    android:padding="0dp"
+                    style="@style/Widget.Material3.Button" />
+
+            </LinearLayout>
 
         </androidx.cardview.widget.CardView>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Дополнительные опции"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Кнопки действий -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="20dp"
-            android:gravity="center"
-            android:weightSum="4">
-
-            <Button
-                android:id="@+id/buttonEditVoice"
-                android:layout_width="0dp"
-                android:layout_height="64dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="4dp"
-                android:text="🎤"
-                android:textSize="32sp"
-                android:padding="8dp"
-                android:minWidth="0dp"
-                android:gravity="center"
-                android:backgroundTint="?attr/colorSurfaceVariant"
-                android:textColor="?attr/colorOnSurface"
-                style="@style/Widget.Material3.Button" />
-
-            <Button
-                android:id="@+id/buttonEditDate"
-                android:layout_width="0dp"
-                android:layout_height="64dp"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
-                android:text="📅"
-                android:textSize="32sp"
-                android:padding="8dp"
-                android:minWidth="0dp"
-                android:gravity="center"
-                android:backgroundTint="?attr/colorSurfaceVariant"
-                android:textColor="?attr/colorOnSurface"
-                style="@style/Widget.Material3.Button" />
-
-            <Button
-                android:id="@+id/buttonEditTime"
-                android:layout_width="0dp"
-                android:layout_height="64dp"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
-                android:text="⏰"
-                android:textSize="32sp"
-                android:padding="8dp"
-                android:minWidth="0dp"
-                android:gravity="center"
-                android:backgroundTint="?attr/colorSurfaceVariant"
-                android:textColor="?attr/colorOnSurface"
-                style="@style/Widget.Material3.Button" />
-
-            <Button
-                android:id="@+id/buttonEditAttach"
-                android:layout_width="0dp"
-                android:layout_height="64dp"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:text="📎"
-                android:textSize="32sp"
-                android:padding="8dp"
-                android:minWidth="0dp"
-                android:gravity="center"
-                android:backgroundTint="?attr/colorSurfaceVariant"
-                android:textColor="?attr/colorOnSurface"
-                style="@style/Widget.Material3.Button" />
-
-        </LinearLayout>
-
-        <!-- Скругленная карточка для ДАТЫ (кликабельная) -->
+        <!-- Скругленная карточка для ДАТЫ -->
         <androidx.cardview.widget.CardView
             android:id="@+id/dateCardView"
             android:layout_width="match_parent"
@@ -163,19 +106,21 @@
                     android:text="Дата не выбрана"
                     android:textSize="14sp"
                     android:fontFamily="monospace"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorPrimary" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18sp"
+                    android:text="›"
+                    android:textSize="24sp"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
 
-        <!-- Скругленная карточка для ВРЕМЕНИ (кликабельная) -->
+        <!-- Скругленная карточка для ВРЕМЕНИ -->
         <androidx.cardview.widget.CardView
             android:id="@+id/timeCardView"
             android:layout_width="match_parent"
@@ -210,19 +155,70 @@
                     android:text="Время не выбрано"
                     android:textSize="14sp"
                     android:fontFamily="monospace"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorPrimary" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18sp"
+                    android:text="›"
+                    android:textSize="24sp"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
 
-        <!-- Блок управления файлом -->
+        <!-- КАРТОЧКА ДЛЯ ПРИКРЕПЛЕНИЯ ФАЙЛА (вместо кнопки) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/buttonEditAttachCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            android:layout_marginBottom="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📎"
+                    android:textSize="20sp"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:id="@+id/buttonEditAttachText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Прикрепить файл"
+                    android:textSize="14sp"
+                    android:fontFamily="monospace"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorPrimary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textSize="24sp"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Блок управления файлом (виден ТОЛЬКО когда есть файл) -->
         <LinearLayout
             android:id="@+id/fileManageLayout"
             android:layout_width="match_parent"
@@ -239,7 +235,7 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Скругленная карточка для файла (кликабельная) -->
+            <!-- Карточка файла (кликабельная - для замены файла) -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/fileCardView"
                 android:layout_width="match_parent"
@@ -273,13 +269,21 @@
                         android:text=""
                         android:textSize="14sp"
                         android:fontFamily="monospace"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorPrimary" />
 
+                    <!-- Крестик для удаления файла -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="✖"
+                        android:id="@+id/buttonRemoveFile"
                         android:textSize="18sp"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:padding="8dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackgroundBorderless" />
 
                 </LinearLayout>
 

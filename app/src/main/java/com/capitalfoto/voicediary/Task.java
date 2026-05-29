@@ -9,7 +9,7 @@ public class Task implements Serializable {
     private String id;
     private String text;
     private Date date;
-    private String filePath;  // ИЗМЕНЕНО: fileUri -> filePath
+    private String filePath;
     private String reaction;
     private boolean done;
     private int hour;
@@ -45,7 +45,7 @@ public class Task implements Serializable {
     public void setId(String id) { this.id = id; }
     public String getText() { return text; }
     public Date getDate() { return date; }
-    public String getFilePath() { return filePath; }  // ИЗМЕНЕНО
+    public String getFilePath() { return filePath; }
     public String getReaction() { return reaction; }
     public boolean isDone() { return done; }
     public int getHour() { return hour; }
@@ -57,7 +57,7 @@ public class Task implements Serializable {
         this.reaction = (reaction != null && !reaction.isEmpty() && !reaction.equals("null")) ? reaction : null;
     }
     public void setDone(boolean done) { this.done = done; }
-    public void setFilePath(String path) {  // ИЗМЕНЕНО
+    public void setFilePath(String path) {
         this.filePath = (path != null && !path.isEmpty() && !path.equals("null") && path.length() > 5) ? path : null;
     }
     public void setTime(int hour, int minute) {
@@ -87,11 +87,9 @@ public class Task implements Serializable {
                 && filePath.length() > 5;
     }
 
+    // ИСПРАВЛЕНО: метод теперь проверяет любые эмодзи, а не только старые реакции
     public boolean hasValidReaction() {
-        if (reaction == null || reaction.isEmpty() || reaction.equals("null")) {
-            return false;
-        }
-        return reaction.equals("like") || reaction.equals("lightning") || reaction.equals("cat");
+        return reaction != null && !reaction.isEmpty() && !reaction.equals("null");
     }
 
     public Calendar getNotificationCalendar() {
@@ -117,8 +115,6 @@ public class Task implements Serializable {
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
         return cal;
-
-
     }
 
     public String getSelectedEmoji() {
