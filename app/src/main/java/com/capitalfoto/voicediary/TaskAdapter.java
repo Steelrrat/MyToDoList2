@@ -4,10 +4,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import java.io.File;
 import java.util.ArrayList;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
@@ -18,12 +20,16 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
     private OnTaskDeleteListener deleteListener;
     private OnTaskEditListener editListener;
     private OnTaskDoneListener doneListener;
+    private OnFileClickListener fileClickListener;
+    private OnEmojiClickListener emojiClickListener;
 
     public interface OnTaskClickListener { void onView(Task task); }
     public interface OnTaskCopyListener { void onCopy(Task task); }
     public interface OnTaskDeleteListener { void onDelete(int position); }
     public interface OnTaskEditListener { void onEdit(int position, Task task); }
     public interface OnTaskDoneListener { void onToggleDone(int position); }
+    public interface OnFileClickListener { void onFileClick(Task task); }
+    public interface OnEmojiClickListener { void onEmojiClick(Task task, int position); }
 
     public TaskAdapter(ArrayList<Task> tasks, OnTaskClickListener clickListener,
                        OnTaskCopyListener copyListener, OnTaskDeleteListener deleteListener,
@@ -34,6 +40,14 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         this.deleteListener = deleteListener;
         this.editListener = editListener;
         this.doneListener = doneListener;
+    }
+
+    public void setOnFileClickListener(OnFileClickListener listener) {
+        this.fileClickListener = listener;
+    }
+
+    public void setOnEmojiClickListener(OnEmojiClickListener listener) {
+        this.emojiClickListener = listener;
     }
 
     @NonNull
@@ -68,19 +82,48 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
         holder.textViewCheckbox.setOnClickListener(v -> doneListener.onToggleDone(position));
 
-        // ИСПРАВЛЕНО: Отображаем САМ ЭМОДЗИ, а не название
+        // Отображаем эмодзи с возможностью клика
         String reaction = task.getReaction();
         if (reaction != null && !reaction.trim().isEmpty()) {
-            // Если реакция - это эмодзи (❤️, ⚡, 😺 или любой другой), показываем его
             holder.textViewReaction.setText(reaction);
             holder.textViewReaction.setVisibility(View.VISIBLE);
+            // Добавляем настройки для правильного отображения эмодзи
+            holder.textViewReaction.setIncludeFontPadding(false);
+            holder.textViewReaction.setLineSpacing(0, 1.0f);
+            // Делаем смайл кликабельным
+            holder.textViewReaction.setOnClickListener(v -> {
+                if (emojiClickListener != null) {
+                    emojiClickListener.onEmojiClick(task, position);
+                }
+            });
+            // Добавляем визуальный эффект при нажатии
+            holder.textViewReaction.setClickable(true);
+            holder.textViewReaction.setFocusable(true);
+            holder.textViewReaction.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.emoji_ripple));
         } else {
             holder.textViewReaction.setVisibility(View.GONE);
         }
 
-        // Файл
-        if (task.hasFile()) {
-            holder.textViewFileIcon.setVisibility(View.VISIBLE);
+        // Файл - обработка клика на скрепку
+        if (task.hasFile() && task.getFilePath() != null) {
+            File file = new File(task.getFilePath());
+            if (file.exists()) {
+                holder.textViewFileIcon.setVisibility(View.VISIBLE);
+                // Добавляем настройки для правильного отображения
+                holder.textViewFileIcon.setIncludeFontPadding(false);
+                // Клик на скрепку открывает файл
+                holder.textViewFileIcon.setOnClickListener(v -> {
+                    if (fileClickListener != null) {
+                        fileClickListener.onFileClick(task);
+                    }
+                });
+                // Добавляем визуальный эффект при нажатии
+                holder.textViewFileIcon.setClickable(true);
+                holder.textViewFileIcon.setFocusable(true);
+                holder.textViewFileIcon.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.emoji_ripple));
+            } else {
+                holder.textViewFileIcon.setVisibility(View.GONE);
+            }
         } else {
             holder.textViewFileIcon.setVisibility(View.GONE);
         }

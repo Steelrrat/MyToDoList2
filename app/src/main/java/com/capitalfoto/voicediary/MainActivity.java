@@ -30,12 +30,15 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.recyclerview.widget.GridLayoutManager;
+import java.util.List;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -128,6 +131,20 @@ public class MainActivity extends AppCompatActivity {
                 this::toggleTaskDone
         );
 
+// Добавляем обработчик клика на файл
+        taskAdapter.setOnFileClickListener(task -> {
+            if (task.hasFile() && task.getFilePath() != null) {
+                openFile(task.getFilePath());
+            } else {
+                Toast.makeText(this, "Файл не найден", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Добавляем обработчик клика на смайл в карточке
+        taskAdapter.setOnEmojiClickListener((task, position) -> {
+            showQuickEmojiPicker(task, position);
+        });
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(taskAdapter);
 
@@ -146,6 +163,65 @@ public class MainActivity extends AppCompatActivity {
         checkAndShowExactAlarmForFirstTime();
     }
 
+    private void showQuickEmojiPicker(Task task, int position) {
+        // Создаем диалог с сеткой эмодзи
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_quick_emoji_picker, null);
+
+        RecyclerView emojiRecyclerView = view.findViewById(R.id.quickEmojiRecyclerView);
+        Button unlockAllButton = view.findViewById(R.id.quickUnlockAllButton);
+        TextView hintText = view.findViewById(R.id.quickUnlockHintText);
+        TextView currentEmojiText = view.findViewById(R.id.currentEmojiText);
+
+        // Показываем текущий смайл задачи
+        String currentReaction = task.getReaction();
+        if (currentReaction != null && !currentReaction.isEmpty()) {
+            currentEmojiText.setText("Текущий смайл: " + currentReaction);
+            currentEmojiText.setVisibility(View.VISIBLE);
+        } else {
+            currentEmojiText.setVisibility(View.GONE);
+        }
+
+        // Настройка сетки смайлов
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 6);
+        emojiRecyclerView.setLayoutManager(gridLayoutManager);
+        emojiRecyclerView.setNestedScrollingEnabled(true);
+
+        boolean allUnlocked = emojiUnlockManager.areAllNewEmojisUnlocked();
+        List<String> allEmojis;
+
+        if (allUnlocked) {
+            allEmojis = emojiUnlockManager.getAllAvailableEmojis();
+            unlockAllButton.setVisibility(View.GONE);
+            if (hintText != null) hintText.setVisibility(View.GONE);
+        } else {
+            allEmojis = emojiUnlockManager.getAllAvailableEmojis();
+            unlockAllButton.setVisibility(View.VISIBLE);
+            unlockAllButton.setOnClickListener(v -> {
+                showRewardedAdForUnlockAll(() -> {
+                    showQuickEmojiPicker(task, position);
+                });
+            });
+            if (hintText != null) hintText.setVisibility(View.VISIBLE);
+        }
+
+        EmojiRecyclerAdapter adapter = new EmojiRecyclerAdapter(
+                allEmojis,
+                emoji -> {
+                    // Обновляем реакцию задачи
+                    task.setReaction(emoji);
+                    saveTasksDebounced();
+                    taskAdapter.notifyItemChanged(position);
+                    Toast.makeText(this, "Смайл " + emoji + " добавлен", Toast.LENGTH_SHORT).show();
+                }
+        );
+        emojiRecyclerView.setAdapter(adapter);
+
+        builder.setTitle("Выберите смайл")
+                .setView(view)
+                .setNegativeButton("Отмена", null)
+                .show();
+    }
     private void createTasksFilesDir() {
         File tasksDir = new File(getFilesDir(), "task_files");
         if (!tasksDir.exists()) {
@@ -527,43 +603,115 @@ public class MainActivity extends AppCompatActivity {
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_view_task, null);
         TextView textTask = view.findViewById(R.id.viewTaskText);
         TextView textDate = view.findViewById(R.id.viewTaskDate);
-        LinearLayout fileContainer = view.findViewById(R.id.fileContainer);
-        TextView textFile = view.findViewById(R.id.viewTaskFile);
+        CardView dateTimeContainer = view.findViewById(R.id.dateTimeContainer);
+        CardView fileContainer = view.findViewById(R.id.fileContainer);
+        TextView btnOpenFile = view.findViewById(R.id.btnOpenFile);
 
         RecyclerView emojiRecyclerView = view.findViewById(R.id.emojiRecyclerView);
         Button unlockAllButton = view.findViewById(R.id.unlockAllButton);
+        TextView hintText = view.findViewById(R.id.unlockHintText);
 
         textTask.setText(task.getText());
-        textDate.setText(task.getFormattedDate());
 
-        String filePath = task.getFilePath();
-        if (task.hasFile() && filePath != null && isFileExists(filePath)) {
-            File file = new File(filePath);
-            String fileName = file.getName();
-            if (fileName.contains("_") && fileName.indexOf("_") < fileName.length() - 1) {
-                String displayName = fileName.substring(fileName.indexOf("_") + 1);
-                textFile.setText(displayName);
+        // --- НАСТРОЙКА ДАТЫ И ВРЕМЕНИ ---
+        String formattedDate = task.getFormattedDate();
+        if (formattedDate != null && !formattedDate.equals("Без даты")) {
+            textDate.setText(formattedDate);
+            dateTimeContainer.setVisibility(View.VISIBLE);
+
+            // Устанавливаем цвет даты в зависимости от темы
+            SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
+            boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
+            int accentColor;
+            if (isDark) {
+                // Темная тема - синий
+                accentColor = ContextCompat.getColor(this, R.color.dark_accent);
             } else {
-                textFile.setText(fileName);
+                // Светлая тема - зеленый
+                accentColor = ContextCompat.getColor(this, R.color.light_accent);
             }
-            fileContainer.setVisibility(View.VISIBLE);
-            fileContainer.setOnClickListener(v -> openFile(filePath));
-        } else if (task.hasFile()) {
-            task.setFilePath(null);
-            saveTasksDebounced();
-            taskAdapter.notifyDataSetChanged();
+            textDate.setTextColor(accentColor);
+        } else {
+            dateTimeContainer.setVisibility(View.GONE);
         }
 
+        // --- НАСТРОЙКА ФАЙЛА ---
+        String filePath = task.getFilePath();
+        if (task.hasFile() && filePath != null && isFileExists(filePath)) {
+            fileContainer.setVisibility(View.VISIBLE);
+
+            // Устанавливаем цвет кнопки в зависимости от темы
+            SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
+            boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
+
+            int buttonColor;
+            if (isDark) {
+                // Темная тема - синий
+                buttonColor = ContextCompat.getColor(this, R.color.dark_accent);
+            } else {
+                // Светлая тема - зеленый
+                buttonColor = ContextCompat.getColor(this, R.color.light_accent);
+            }
+
+            fileContainer.setCardBackgroundColor(buttonColor);
+
+            // Обработчик открытия файла
+            View.OnClickListener openFileListener = v -> openFile(filePath);
+
+            // Клик на весь контейнер
+            fileContainer.setOnClickListener(openFileListener);
+            // Клик на кнопку
+            btnOpenFile.setOnClickListener(openFileListener);
+        } else {
+            fileContainer.setVisibility(View.GONE);
+            if (task.hasFile()) {
+                task.setFilePath(null);
+                saveTasksDebounced();
+                taskAdapter.notifyDataSetChanged();
+            }
+        }
+
+        // --- НАСТРОЙКА СМАЙЛОВ ---
         if (emojiRecyclerView != null) {
             GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 6);
             emojiRecyclerView.setLayoutManager(gridLayoutManager);
+            emojiRecyclerView.setNestedScrollingEnabled(true);
+
+            boolean allUnlocked = emojiUnlockManager.areAllNewEmojisUnlocked();
+
+            if (allUnlocked) {
+                unlockAllButton.setVisibility(View.GONE);
+                if (hintText != null) hintText.setVisibility(View.GONE);
+            } else {
+                unlockAllButton.setVisibility(View.VISIBLE);
+                unlockAllButton.setOnClickListener(v -> {
+                    showRewardedAdForUnlockAll(() -> {
+                        setupEmojiRecyclerView(emojiRecyclerView, unlockAllButton, task);
+                    });
+                });
+                if (hintText != null) hintText.setVisibility(View.VISIBLE);
+            }
+
             setupEmojiRecyclerView(emojiRecyclerView, unlockAllButton, task);
         }
 
-        builder.setTitle(null)
+        AlertDialog dialog = builder.setTitle(null)
                 .setView(view)
                 .setPositiveButton("Закрыть", null)
                 .show();
+
+        // Устанавливаем цвет кнопки "Закрыть" в соответствии с темой
+        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        if (positiveButton != null) {
+            SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
+            boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
+
+            if (isDark) {
+                positiveButton.setTextColor(ContextCompat.getColor(this, R.color.dark_accent));
+            } else {
+                positiveButton.setTextColor(ContextCompat.getColor(this, R.color.light_accent));
+            }
+        }
     }
 
     private void setupEmojiRecyclerView(RecyclerView recyclerView, Button unlockAllButton, Task task) {
@@ -579,7 +727,6 @@ public class MainActivity extends AppCompatActivity {
         List<String> allEmojis = new ArrayList<>();
 
         if (allUnlocked) {
-            // Используем ВСЕ смайлы из менеджера (включая базовые)
             allEmojis.addAll(emojiUnlockManager.getAllAvailableEmojis());
             if (unlockAllButton != null) {
                 unlockAllButton.setVisibility(View.GONE);
@@ -588,7 +735,6 @@ public class MainActivity extends AppCompatActivity {
                 hintText.setVisibility(View.GONE);
             }
         } else {
-            // Только 3 базовых смайла
             allEmojis.addAll(emojiUnlockManager.getAllAvailableEmojis());
             if (unlockAllButton != null) {
                 unlockAllButton.setVisibility(View.VISIBLE);
@@ -603,7 +749,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Адаптер для смайлов
         EmojiRecyclerAdapter adapter = new EmojiRecyclerAdapter(
                 allEmojis,
                 emoji -> {
@@ -611,6 +756,9 @@ public class MainActivity extends AppCompatActivity {
                     saveTasksDebounced();
                     taskAdapter.notifyDataSetChanged();
                     Toast.makeText(this, "Смайл " + emoji + " добавлен", Toast.LENGTH_SHORT).show();
+
+                    // Обновляем отображение в списке, но не показываем в диалоге
+                    // (в диалоге больше нет блока с текущей реакцией)
                 }
         );
         recyclerView.setAdapter(adapter);
@@ -736,9 +884,26 @@ public class MainActivity extends AppCompatActivity {
         TextView txtDate = view.findViewById(R.id.textSelectedDate);
         TextView txtFile = view.findViewById(R.id.textAttachedFile);
 
+        // Находим карточки (если в dialog_add_task.xml тоже добавили карточки)
+        // Если нет, то пропустите этот блок
+
+        // Определяем цвет темы
+        SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
+        boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
+        int accentColor;
+        if (isDark) {
+            accentColor = ContextCompat.getColor(this, R.color.dark_accent);
+        } else {
+            accentColor = ContextCompat.getColor(this, R.color.light_accent);
+        }
+
+        // Устанавливаем цвет текста
+        txtDate.setTextColor(accentColor);
+        txtFile.setTextColor(accentColor);
+
         btnVoice.setOnClickListener(v -> startVoiceInput());
         btnDate.setOnClickListener(v -> showDatePicker(txtDate));
-        btnTime.setOnClickListener(v -> showTimePicker(txtDate));
+        btnTime.setOnClickListener(v -> showTimePicker(txtDate, null));
         btnAttach.setOnClickListener(v -> fileLauncher.launch("*/*"));
 
         AlertDialog dialog = builder.setView(view)
@@ -764,6 +929,19 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton("Отмена", (d, w) -> clearDialogReferences())
                 .create();
 
+        // Устанавливаем цвет кнопок диалога
+        dialog.setOnShowListener(dialogInterface -> {
+            Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+
+            if (positiveButton != null) {
+                positiveButton.setTextColor(accentColor);
+            }
+            if (negativeButton != null) {
+                negativeButton.setTextColor(accentColor);
+            }
+        });
+
         dialog.setOnDismissListener(dialogInterface -> clearDialogReferences());
         currentDialog = dialog;
         dialog.show();
@@ -787,29 +965,56 @@ public class MainActivity extends AppCompatActivity {
         Button btnTime = view.findViewById(R.id.buttonEditTime);
         Button btnAttach = view.findViewById(R.id.buttonEditAttach);
         TextView txtDate = view.findViewById(R.id.textEditDate);
+        TextView txtTime = view.findViewById(R.id.textEditTime);  // НОВЫЙ TextView для времени
         TextView txtFile = view.findViewById(R.id.textEditFile);
-        LinearLayout fileLayout = view.findViewById(R.id.fileManageLayout);
+        LinearLayout fileManageLayout = view.findViewById(R.id.fileManageLayout);
+        CardView dateCardView = view.findViewById(R.id.dateCardView);
+        CardView timeCardView = view.findViewById(R.id.timeCardView);  // НОВАЯ карточка времени
+        CardView fileCardView = view.findViewById(R.id.fileCardView);
 
+        // Определяем цвета темы
+        SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
+        boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
+        int accentColor;
+        if (isDark) {
+            accentColor = ContextCompat.getColor(this, R.color.dark_accent);
+        } else {
+            accentColor = ContextCompat.getColor(this, R.color.light_accent);
+        }
+
+        // Устанавливаем цвет текста для даты, времени и файла
+        txtDate.setTextColor(accentColor);
+        txtTime.setTextColor(accentColor);
+        txtFile.setTextColor(accentColor);
+
+        // Обновляем отображение даты и времени
         updateDateDisplay(txtDate);
+        updateTimeDisplay(txtTime);  // НОВЫЙ метод для времени
 
         if (tempStoredFilePath != null && !tempStoredFilePath.isEmpty() && isFileExists(tempStoredFilePath)) {
             File file = new File(tempStoredFilePath);
             String fileName = file.getName();
             if (fileName.contains("_") && fileName.indexOf("_") < fileName.length() - 1) {
                 String displayName = fileName.substring(fileName.indexOf("_") + 1);
-                txtFile.setText("📎 " + displayName);
+                txtFile.setText(displayName);
             } else {
-                txtFile.setText("📎 " + fileName);
+                txtFile.setText(fileName);
             }
-            fileLayout.setVisibility(View.VISIBLE);
+            fileManageLayout.setVisibility(View.VISIBLE);
         } else if (tempStoredFilePath != null) {
             tempStoredFilePath = null;
         }
 
+        // Обработчики для кнопок
         btnVoice.setOnClickListener(v -> startVoiceInput());
         btnDate.setOnClickListener(v -> showDatePicker(txtDate));
-        btnTime.setOnClickListener(v -> showTimePicker(txtDate));
+        btnTime.setOnClickListener(v -> showTimePicker(txtDate, txtTime));  // Обновленный метод
         btnAttach.setOnClickListener(v -> fileLauncher.launch("*/*"));
+
+        // Обработчики для кликабельных карточек
+        dateCardView.setOnClickListener(v -> showDatePicker(txtDate));
+        timeCardView.setOnClickListener(v -> showTimePicker(txtDate, txtTime));  // Открывает выбор времени
+        fileCardView.setOnClickListener(v -> fileLauncher.launch("*/*"));
 
         AlertDialog dialog = builder.setView(view)
                 .setPositiveButton("Сохранить", (d, which) -> {
@@ -847,6 +1052,19 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("Отмена", (d, w) -> clearDialogReferences())
                 .create();
+
+        // Устанавливаем цвет кнопок диалога
+        dialog.setOnShowListener(dialogInterface -> {
+            Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+
+            if (positiveButton != null) {
+                positiveButton.setTextColor(accentColor);
+            }
+            if (negativeButton != null) {
+                negativeButton.setTextColor(accentColor);
+            }
+        });
 
         dialog.setOnDismissListener(dialogInterface -> clearDialogReferences());
         currentDialog = dialog;
@@ -907,17 +1125,25 @@ public class MainActivity extends AppCompatActivity {
             selected.set(year, month, day);
             tempDate = selected.getTime();
             updateDateDisplay(targetTextView);
+            // Находим TextView времени и обновляем его цвет, если нужно
+            if (currentDialog != null) {
+                TextView txtTime = currentDialog.findViewById(R.id.textEditTime);
+                if (txtTime != null) {
+                    updateTimeDisplay(txtTime);
+                }
+            }
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
     }
 
-    private void showTimePicker(TextView targetTextView) {
+    private void showTimePicker(TextView txtDate, TextView txtTime) {
         Calendar c = Calendar.getInstance();
         int hour = tempHour >= 0 ? tempHour : c.get(Calendar.HOUR_OF_DAY);
         int minute = tempMinute >= 0 ? tempMinute : c.get(Calendar.MINUTE);
         new TimePickerDialog(this, (view1, hourOfDay, minuteOfHour) -> {
             tempHour = hourOfDay;
             tempMinute = minuteOfHour;
-            updateDateDisplay(targetTextView);
+            updateDateDisplay(txtDate);
+            updateTimeDisplay(txtTime);  // Обновляем отображение времени
 
             if (tempDate == null) {
                 showNotificationTimeToast();
@@ -927,6 +1153,18 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateDateDisplay(TextView txtDate) {
         if (txtDate == null) return;
+
+        // Определяем цвет для даты
+        SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
+        boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
+        int accentColor;
+        if (isDark) {
+            accentColor = ContextCompat.getColor(this, R.color.dark_accent);
+        } else {
+            accentColor = ContextCompat.getColor(this, R.color.light_accent);
+        }
+        txtDate.setTextColor(accentColor);
+
         if (tempDate != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
             String dateStr = sdf.format(tempDate);
@@ -1051,6 +1289,26 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         if (rewardManager != null) {
             rewardManager.destroy();
+        }
+    }
+    private void updateTimeDisplay(TextView txtTime) {
+        if (txtTime == null) return;
+
+        // Определяем цвет для времени
+        SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
+        boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
+        int accentColor;
+        if (isDark) {
+            accentColor = ContextCompat.getColor(this, R.color.dark_accent);
+        } else {
+            accentColor = ContextCompat.getColor(this, R.color.light_accent);
+        }
+        txtTime.setTextColor(accentColor);
+
+        if (tempHour >= 0 && tempMinute >= 0) {
+            txtTime.setText(String.format("%02d:%02d", tempHour, tempMinute));
+        } else {
+            txtTime.setText("Время не выбрано");
         }
     }
 

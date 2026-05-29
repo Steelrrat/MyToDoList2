@@ -15,5 +15,9 @@
         <item name="colorOnSurfaceVariant">@color/text_secondary</item>
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
+
+        <!-- Цвет кнопок в диалогах - такой же как в светлой теме -->
+        <item name="colorAccent">#2196F3</item>
+        <item name="android:colorAccent">#2196F3</item>
     </style>
 </resources>
