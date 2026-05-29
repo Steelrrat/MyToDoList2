@@ -7,4 +7,6 @@
     <color name="card_background">#2C2C2C</color>
     <color name="done_background">#1B3B1B</color>
     <color name="done_text">#81C784</color>
+    <color name="button_primary">#757575</color>
+    <color name="button_selected">#9E9E9E</color>
 </resources>

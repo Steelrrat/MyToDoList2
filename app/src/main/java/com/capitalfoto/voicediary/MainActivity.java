@@ -3,9 +3,11 @@ package com.capitalfoto.voicediary;
 import android.Manifest;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -14,9 +16,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
@@ -35,17 +37,22 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -54,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private TaskAdapter taskAdapter;
     private ArrayList<Task> taskList;
     private FloatingActionButton fabAdd;
+    private Button fabTheme;;
     private static final String PREFS_NAME = "TodoPrefs";
     private static final String PREFS_THEME = "theme_prefs";
     private static final String THEME_KEY = "is_dark_theme";
@@ -61,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> voiceLauncher;
     private ActivityResultLauncher<String> fileLauncher;
 
-    private String tempFileUri = null;
+    private String tempStoredFilePath = null;
     private Date tempDate = null;
     private int tempHour = -1;
     private int tempMinute = -1;
@@ -69,11 +77,15 @@ public class MainActivity extends AppCompatActivity {
     private EditText currentEditText = null;
     private AlertDialog currentDialog = null;
     private ActivityResultLauncher<String[]> permissionsLauncher;
+    private EmojiRecyclerAdapter emojiAdapter;
+
+    private RewardManager rewardManager;
+    private EmojiUnlockManager emojiUnlockManager;
 
     private final Handler saveHandler = new Handler(Looper.getMainLooper());
     private final Runnable saveRunnable = this::saveTasksImmediate;
-
     private final Object saveLock = new Object();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
@@ -87,8 +99,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         NotificationHelper.createNotificationChannel(this);
 
+        createTasksFilesDir();
+
         recyclerView = findViewById(R.id.recyclerView);
         fabAdd = findViewById(R.id.fabAdd);
+        fabTheme = findViewById(R.id.fabTheme);
         taskList = new ArrayList<>();
 
         loadTasksAndMigrate();
@@ -118,47 +133,81 @@ public class MainActivity extends AppCompatActivity {
 
         setupSwipe();
         setupLaunchers();
+        rewardManager = new RewardManager(this);
+        emojiUnlockManager = new EmojiUnlockManager(this);
         setupPermissionsLauncher();
 
         fabAdd.setOnClickListener(v -> showAddDialog());
-        FloatingActionButton fabTheme = findViewById(R.id.fabTheme);
+
+        updateThemeIcon(fabTheme);
         fabTheme.setOnClickListener(v -> toggleTheme());
 
         showWelcomeMessage();
-        restoreTasksFromBackup();
+        checkAndShowExactAlarmForFirstTime();
     }
 
-    // ========== ПРОВЕРКА ТОЧНЫХ БУДИЛЬНИКОВ ==========
-    private void checkExactAlarmPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+    private void createTasksFilesDir() {
+        File tasksDir = new File(getFilesDir(), "task_files");
+        if (!tasksDir.exists()) {
+            tasksDir.mkdirs();
+        }
+    }
 
-            if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
-                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+    private String copyFileToInternalStorage(Uri sourceUri) {
+        try {
+            String fileName = getFileName(sourceUri);
+            String uniqueName = System.currentTimeMillis() + "_" + fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
+            File destFile = new File(getFilesDir(), "task_files/" + uniqueName);
 
-                int showCount = prefs.getInt("exact_alarm_show_count", 0);
-                boolean neverAsk = prefs.getBoolean("exact_alarm_never_ask", false);
+            ContentResolver resolver = getContentResolver();
+            try (InputStream inputStream = resolver.openInputStream(sourceUri);
+                 FileOutputStream outputStream = new FileOutputStream(destFile)) {
 
-                if (!neverAsk && showCount < 3) {
-                    prefs.edit().putInt("exact_alarm_show_count", showCount + 1).apply();
+                if (inputStream == null) return null;
 
-                    new AlertDialog.Builder(this)
-                            .setTitle("⏰ Точные уведомления")
-                            .setMessage("Для точного времени уведомлений необходимо разрешение.\n\n" +
-                                    "Без него напоминания могут задерживаться на 10-15 минут.\n\n" +
-                                    "Разрешить?")
-                            .setPositiveButton("Разрешить", (dialog, which) -> {
-                                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
-                                intent.setData(Uri.parse("package:" + getPackageName()));
-                                startActivity(intent);
-                            })
-                            .setNegativeButton("Отмена", null)
-                            .setNeutralButton("Не напоминать", (dialog, which) -> {
-                                prefs.edit().putBoolean("exact_alarm_never_ask", true).apply();
-                            })
-                            .show();
+                byte[] buffer = new byte[8192];
+                int length;
+                while ((length = inputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, length);
                 }
+                outputStream.flush();
             }
+
+            return destFile.getAbsolutePath();
+        } catch (Exception e) {
+            Log.e("FILE_COPY", "Ошибка копирования файла", e);
+            Toast.makeText(this, "Не удалось сохранить файл", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+    }
+
+    private boolean isFileExists(String filePath) {
+        if (filePath == null) return false;
+        File file = new File(filePath);
+        return file.exists() && file.length() > 0;
+    }
+
+    private void openFile(String filePath) {
+        if (filePath == null || filePath.isEmpty()) {
+            Toast.makeText(this, "Файл не найден", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            File file = new File(filePath);
+            if (!file.exists()) {
+                Toast.makeText(this, "Файл не найден", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Uri uri = androidx.core.content.FileProvider.getUriForFile(this,
+                    getPackageName() + ".fileprovider", file);
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(uri);
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(intent, "Открыть файл"));
+        } catch (Exception e) {
+            Toast.makeText(this, "Не удалось открыть файл", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -214,23 +263,27 @@ public class MainActivity extends AppCompatActivity {
                     long d = prefs.getLong("date_" + i, 0);
                     Date date = d > 0 ? new Date(d) : null;
 
-                    // ИСПРАВЛЕНО: Очищаем НЕКОРРЕКТНЫЕ значения из prefs
-                    String file = prefs.getString("file_" + i, null);
-                    if (file != null && (file.trim().isEmpty() || file.trim().equals("null") || file.trim().length() < 5 ||
-                            (!file.trim().contains(":") && !file.trim().contains("/")))) {
-                        file = null;
-                        // Удаляем некорректное значение из SharedPreferences
-                        prefs.edit().remove("file_" + i).apply();
-                    } else if (file != null) {
-                        file = file.trim();
+                    String oldFileUri = prefs.getString("file_" + i, null);
+                    String filePath = null;
+                    if (oldFileUri != null && !oldFileUri.trim().isEmpty() && !oldFileUri.trim().equals("null")) {
+                        if (oldFileUri.startsWith("/") || oldFileUri.contains("/task_files/")) {
+                            filePath = oldFileUri;
+                        } else {
+                            try {
+                                Uri uri = Uri.parse(oldFileUri);
+                                String newPath = copyFileToInternalStorage(uri);
+                                if (newPath != null) {
+                                    filePath = newPath;
+                                }
+                            } catch (Exception e) {
+                                Log.e("MIGRATE", "Не удалось мигрировать файл: " + oldFileUri, e);
+                            }
+                        }
                     }
 
                     String reaction = prefs.getString("reaction_" + i, null);
-                    if (reaction != null && (reaction.trim().isEmpty() || reaction.trim().equals("null") ||
-                            (!reaction.trim().equals("like") && !reaction.trim().equals("lightning") && !reaction.trim().equals("cat")))) {
+                    if (reaction != null && (reaction.trim().isEmpty() || reaction.trim().equals("null"))) {
                         reaction = null;
-                        // Удаляем некорректное значение из SharedPreferences
-                        prefs.edit().remove("reaction_" + i).apply();
                     } else if (reaction != null) {
                         reaction = reaction.trim();
                     }
@@ -242,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
                     String id = prefs.getString("id_" + i, null);
                     if (id == null) id = UUID.randomUUID().toString();
 
-                    Task task = new Task(text, date, file, reaction, done, hour, minute);
+                    Task task = new Task(text, date, filePath, reaction, done, hour, minute);
                     task.setId(id);
                     newList.add(task);
                 }
@@ -259,35 +312,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void migrateDataIfNeeded(SharedPreferences prefs) {
         int currentVersion = prefs.getInt("data_version", 0);
-        SharedPreferences.Editor ed = prefs.edit();
-
-        if (currentVersion < 2) {
+        if (currentVersion < 3) {
+            SharedPreferences.Editor ed = prefs.edit();
             int count = prefs.getInt("count", 0);
             for (int i = 0; i < count; i++) {
-                String file = prefs.getString("file_" + i, null);
-                if (file != null && (file.isEmpty() || file.equals("null"))) {
-                    ed.remove("file_" + i);
-                }
-
-                String reaction = prefs.getString("reaction_" + i, null);
-                if (reaction != null && (reaction.isEmpty() || reaction.equals("null"))) {
-                    ed.remove("reaction_" + i);
-                }
-
                 String id = prefs.getString("id_" + i, null);
                 if (id == null) {
                     ed.putString("id_" + i, UUID.randomUUID().toString());
                 }
             }
-            ed.putInt("data_version", 2);
-
-            for (int i = 0; i < count; i++) {
-                String reaction = prefs.getString("reaction_" + i, null);
-                if (reaction != null && (reaction.isEmpty() || reaction.equals("null") ||
-                        (!reaction.equals("like") && !reaction.equals("lightning") && !reaction.equals("cat")))) {
-                    ed.remove("reaction_" + i);
-                }
-            }
+            ed.putInt("data_version", 3);
             ed.apply();
         }
     }
@@ -312,7 +346,6 @@ public class MainActivity extends AppCompatActivity {
                     if (!microphoneGranted) {
                         Toast.makeText(this, "Голосовой ввод будет недоступен", Toast.LENGTH_LONG).show();
                     }
-
                     requestBatteryOptimization();
                 }
         );
@@ -360,7 +393,7 @@ public class MainActivity extends AppCompatActivity {
     private void showNotificationSettingsHelp() {
         new AlertDialog.Builder(this)
                 .setTitle("🔔 Настройка уведомлений")
-                .setMessage("Включите уведомления в настройках телефона для приложения MyToDoList2")
+                .setMessage("Включите уведомления в настройках телефона для приложения Голосовой ежедневник")
                 .setPositiveButton("Понятно", null)
                 .show();
     }
@@ -395,16 +428,32 @@ public class MainActivity extends AppCompatActivity {
     private void toggleTheme() {
         SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
         boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
+
         if (isDark) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             themePrefs.edit().putBoolean(THEME_KEY, false).apply();
-            Toast.makeText(this, "Светлая тема", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "☀️ Светлая тема", Toast.LENGTH_SHORT).show();
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
             themePrefs.edit().putBoolean(THEME_KEY, true).apply();
-            Toast.makeText(this, "Ночная тема", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "🌙 Ночная тема", Toast.LENGTH_SHORT).show();
         }
+
+        updateThemeIcon(fabTheme);
         recreate();
+    }
+
+    private void updateThemeIcon(Button fabTheme) {
+        SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
+        boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
+
+        if (isDark) {
+            fabTheme.setText("☀️");
+            fabTheme.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFF9800));
+        } else {
+            fabTheme.setText("🌙");
+            fabTheme.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF9C27B0));
+        }
     }
 
     private void toggleTaskDone(int position) {
@@ -473,33 +522,6 @@ public class MainActivity extends AppCompatActivity {
         return name;
     }
 
-    private boolean isFileAccessible(String uriString) {
-        if (uriString == null) return false;
-        try {
-            Uri uri = Uri.parse(uriString);
-            getContentResolver().openInputStream(uri).close();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private void openFile(String uriString) {
-        if (uriString == null || uriString.isEmpty() || uriString.equals("null")) {
-            Toast.makeText(this, "Файл не найден", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        try {
-            Uri uri = Uri.parse(uriString);
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(uri);
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(Intent.createChooser(intent, "Открыть файл"));
-        } catch (Exception e) {
-            Toast.makeText(this, "Не удалось открыть файл", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     private void showViewDialog(Task task) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_view_task, null);
@@ -507,53 +529,36 @@ public class MainActivity extends AppCompatActivity {
         TextView textDate = view.findViewById(R.id.viewTaskDate);
         LinearLayout fileContainer = view.findViewById(R.id.fileContainer);
         TextView textFile = view.findViewById(R.id.viewTaskFile);
-        Button buttonLike = view.findViewById(R.id.buttonLike);
-        Button buttonLightning = view.findViewById(R.id.buttonLightning);
-        Button buttonCat = view.findViewById(R.id.buttonCat);
+
+        RecyclerView emojiRecyclerView = view.findViewById(R.id.emojiRecyclerView);
+        Button unlockAllButton = view.findViewById(R.id.unlockAllButton);
 
         textTask.setText(task.getText());
         textDate.setText(task.getFormattedDate());
 
-        if (task.hasFile() && task.getFileUri() != null && isFileAccessible(task.getFileUri())) {
-            String fileName = getFileName(Uri.parse(task.getFileUri()));
-            textFile.setText(fileName);
+        String filePath = task.getFilePath();
+        if (task.hasFile() && filePath != null && isFileExists(filePath)) {
+            File file = new File(filePath);
+            String fileName = file.getName();
+            if (fileName.contains("_") && fileName.indexOf("_") < fileName.length() - 1) {
+                String displayName = fileName.substring(fileName.indexOf("_") + 1);
+                textFile.setText(displayName);
+            } else {
+                textFile.setText(fileName);
+            }
             fileContainer.setVisibility(View.VISIBLE);
-            fileContainer.setOnClickListener(v -> openFile(task.getFileUri()));
+            fileContainer.setOnClickListener(v -> openFile(filePath));
         } else if (task.hasFile()) {
-            task.setFileUri(null);
+            task.setFilePath(null);
             saveTasksDebounced();
             taskAdapter.notifyDataSetChanged();
         }
 
-        String currentReaction = task.getReaction();
-        updateReactionButtons(buttonLike, buttonLightning, buttonCat, currentReaction);
-
-        buttonLike.setOnClickListener(v -> {
-            String newReaction = "like";
-            task.setReaction(currentReaction != null && currentReaction.equals(newReaction) ? null : newReaction);
-            updateReactionButtons(buttonLike, buttonLightning, buttonCat, task.getReaction());
-            Toast.makeText(this, task.getReaction() != null ? "❤️" : "Реакция убрана", Toast.LENGTH_SHORT).show();
-            saveTasksDebounced();
-            taskAdapter.notifyDataSetChanged();
-        });
-
-        buttonLightning.setOnClickListener(v -> {
-            String newReaction = "lightning";
-            task.setReaction(currentReaction != null && currentReaction.equals(newReaction) ? null : newReaction);
-            updateReactionButtons(buttonLike, buttonLightning, buttonCat, task.getReaction());
-            Toast.makeText(this, task.getReaction() != null ? "⚡" : "Реакция убрана", Toast.LENGTH_SHORT).show();
-            saveTasksDebounced();
-            taskAdapter.notifyDataSetChanged();
-        });
-
-        buttonCat.setOnClickListener(v -> {
-            String newReaction = "cat";
-            task.setReaction(currentReaction != null && currentReaction.equals(newReaction) ? null : newReaction);
-            updateReactionButtons(buttonLike, buttonLightning, buttonCat, task.getReaction());
-            Toast.makeText(this, task.getReaction() != null ? "😺" : "Реакция убрана", Toast.LENGTH_SHORT).show();
-            saveTasksDebounced();
-            taskAdapter.notifyDataSetChanged();
-        });
+        if (emojiRecyclerView != null) {
+            GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 6);
+            emojiRecyclerView.setLayoutManager(gridLayoutManager);
+            setupEmojiRecyclerView(emojiRecyclerView, unlockAllButton, task);
+        }
 
         builder.setTitle(null)
                 .setView(view)
@@ -561,25 +566,104 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void updateReactionButtons(Button like, Button lightning, Button cat, String selectedReaction) {
-        like.setAlpha(0.5f);
-        lightning.setAlpha(0.5f);
-        cat.setAlpha(0.5f);
-        if (selectedReaction != null) {
-            switch (selectedReaction) {
-                case "like": like.setAlpha(1.0f); break;
-                case "lightning": lightning.setAlpha(1.0f); break;
-                case "cat": cat.setAlpha(1.0f); break;
+    private void setupEmojiRecyclerView(RecyclerView recyclerView, Button unlockAllButton, Task task) {
+        boolean allUnlocked = emojiUnlockManager.areAllNewEmojisUnlocked();
+
+        // Находим текст подсказки
+        View parentView = (View) recyclerView.getParent();
+        TextView hintText = null;
+        if (parentView != null) {
+            hintText = parentView.findViewById(R.id.unlockHintText);
+        }
+
+        List<String> allEmojis = new ArrayList<>();
+
+        if (allUnlocked) {
+            // Используем ВСЕ смайлы из менеджера (включая базовые)
+            allEmojis.addAll(emojiUnlockManager.getAllAvailableEmojis());
+            if (unlockAllButton != null) {
+                unlockAllButton.setVisibility(View.GONE);
+            }
+            if (hintText != null) {
+                hintText.setVisibility(View.GONE);
+            }
+        } else {
+            // Только 3 базовых смайла
+            allEmojis.addAll(emojiUnlockManager.getAllAvailableEmojis());
+            if (unlockAllButton != null) {
+                unlockAllButton.setVisibility(View.VISIBLE);
+                unlockAllButton.setOnClickListener(v -> {
+                    showRewardedAdForUnlockAll(() -> {
+                        setupEmojiRecyclerView(recyclerView, unlockAllButton, task);
+                    });
+                });
+            }
+            if (hintText != null) {
+                hintText.setVisibility(View.VISIBLE);
             }
         }
+
+        // Адаптер для смайлов
+        EmojiRecyclerAdapter adapter = new EmojiRecyclerAdapter(
+                allEmojis,
+                emoji -> {
+                    task.setReaction(emoji);
+                    saveTasksDebounced();
+                    taskAdapter.notifyDataSetChanged();
+                    Toast.makeText(this, "Смайл " + emoji + " добавлен", Toast.LENGTH_SHORT).show();
+                }
+        );
+        recyclerView.setAdapter(adapter);
+    }
+
+    private void showRewardedAdForUnlockAll(Runnable onUnlocked) {
+        if (isFinishing() || isDestroyed()) {
+            Toast.makeText(this, "Не удалось показать рекламу", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Загрузка рекламы...");
+        progressDialog.setCancelable(false);
+
+        // ВСЕГДА показываем прогресс (без проверки isMockMode)
+        progressDialog.show();
+
+        rewardManager.showRewardedAd(
+                () -> {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
+                    runOnUiThread(() -> {
+                        emojiUnlockManager.unlockAllNewEmojis();
+                        Toast.makeText(this, "🎉 ВСЕ СМАЙЛЫ РАЗБЛОКИРОВАНЫ! 🎉", Toast.LENGTH_LONG).show();
+                        if (onUnlocked != null) onUnlocked.run();
+                    });
+                },
+                () -> {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "⚠️ Реклама не загрузилась. Проверьте интернет и попробуйте позже.", Toast.LENGTH_LONG).show();
+                    });
+                }
+        );
+
+        // Таймаут для скрытия прогресса (без проверки isMockMode)
+        new Handler().postDelayed(() -> {
+            if (progressDialog.isShowing()) {
+                progressDialog.dismiss();
+                Toast.makeText(this, "Реклама не загрузилась", Toast.LENGTH_SHORT).show();
+            }
+        }, 10000);
     }
 
     private void setupSwipe() {
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            @Override public boolean onMove(RecyclerView r, RecyclerView.ViewHolder vh, RecyclerView.ViewHolder t) {
+            @Override
+            public boolean onMove(RecyclerView r, RecyclerView.ViewHolder vh, RecyclerView.ViewHolder t) {
                 return false;
             }
-            @Override public void onSwiped(RecyclerView.ViewHolder vh, int dir) {
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder vh, int dir) {
                 int pos = vh.getAdapterPosition();
                 if (pos == -1) return;
                 if (dir == ItemTouchHelper.LEFT) {
@@ -613,15 +697,20 @@ public class MainActivity extends AppCompatActivity {
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
-                        tempFileUri = uri.toString();
+                        tempStoredFilePath = copyFileToInternalStorage(uri);
                         if (currentDialog != null) {
                             View view = currentDialog.findViewById(R.id.textAttachedFile);
                             if (view == null) view = currentDialog.findViewById(R.id.textEditFile);
                             if (view instanceof TextView) {
                                 TextView tv = (TextView) view;
-                                String fileName = getFileName(uri);
-                                tv.setText(fileName);
-                                tv.setVisibility(View.VISIBLE);
+                                if (tempStoredFilePath != null) {
+                                    String fileName = getFileName(uri);
+                                    tv.setText("📎 " + fileName);
+                                    tv.setVisibility(View.VISIBLE);
+                                } else {
+                                    tv.setText("Ошибка прикрепления");
+                                    tv.setVisibility(View.VISIBLE);
+                                }
                             }
                         }
                     }
@@ -631,7 +720,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAddDialog() {
         tempDate = null;
-        tempFileUri = null;
+        tempStoredFilePath = null;
         tempHour = -1;
         tempMinute = -1;
 
@@ -656,7 +745,7 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("Добавить", (d, which) -> {
                     String text = editText.getText().toString().trim();
                     if (!text.isEmpty()) {
-                        Task newTask = new Task(text, tempDate, tempFileUri, null, false, tempHour, tempMinute);
+                        Task newTask = new Task(text, tempDate, tempStoredFilePath, null, false, tempHour, tempMinute);
                         newTask.setId(UUID.randomUUID().toString());
                         taskList.add(newTask);
                         sortTasks();
@@ -682,7 +771,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showEditDialog(int pos, Task oldTask) {
         tempDate = oldTask.getDate();
-        tempFileUri = oldTask.getFileUri();
+        tempStoredFilePath = oldTask.getFilePath();
         tempHour = oldTask.getHour();
         tempMinute = oldTask.getMinute();
 
@@ -703,13 +792,18 @@ public class MainActivity extends AppCompatActivity {
 
         updateDateDisplay(txtDate);
 
-        if (tempFileUri != null && !tempFileUri.isEmpty() && !tempFileUri.equals("null") && isFileAccessible(tempFileUri)) {
-            String fileName = getFileName(Uri.parse(tempFileUri));
-            if (fileName.length() > 50) fileName = fileName.substring(0, 47) + "...";
-            txtFile.setText(fileName);
+        if (tempStoredFilePath != null && !tempStoredFilePath.isEmpty() && isFileExists(tempStoredFilePath)) {
+            File file = new File(tempStoredFilePath);
+            String fileName = file.getName();
+            if (fileName.contains("_") && fileName.indexOf("_") < fileName.length() - 1) {
+                String displayName = fileName.substring(fileName.indexOf("_") + 1);
+                txtFile.setText("📎 " + displayName);
+            } else {
+                txtFile.setText("📎 " + fileName);
+            }
             fileLayout.setVisibility(View.VISIBLE);
-        } else if (tempFileUri != null) {
-            tempFileUri = null;
+        } else if (tempStoredFilePath != null) {
+            tempStoredFilePath = null;
         }
 
         btnVoice.setOnClickListener(v -> startVoiceInput());
@@ -721,17 +815,29 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("Сохранить", (d, which) -> {
                     String newText = editText.getText().toString().trim();
                     if (!newText.isEmpty()) {
-                        Task updatedTask = new Task(newText, tempDate, tempFileUri,
+                        Task updatedTask = new Task(newText, tempDate, tempStoredFilePath,
                                 oldTask.getReaction(), oldTask.isDone(), tempHour, tempMinute);
                         updatedTask.setId(oldTask.getId());
+
+                        if (updatedTask.getId() == null || updatedTask.getId().isEmpty()) {
+                            updatedTask.setId(UUID.randomUUID().toString());
+                        }
+
                         taskList.set(pos, updatedTask);
                         sortTasks();
                         taskAdapter.notifyDataSetChanged();
                         saveTasksDebounced();
 
-                        NotificationHelper.cancelNotification(MainActivity.this, oldTask.getId());
+                        if (oldTask.getId() != null) {
+                            NotificationHelper.cancelNotification(MainActivity.this, oldTask.getId());
+                        }
+
                         if (tempHour >= 0 && tempMinute >= 0 && !updatedTask.isDone()) {
-                            NotificationHelper.scheduleNotification(MainActivity.this, updatedTask);
+                            try {
+                                NotificationHelper.scheduleNotification(MainActivity.this, updatedTask);
+                            } catch (Exception e) {
+                                Log.e("EditDialog", "scheduleNotification error", e);
+                            }
                         }
                         Toast.makeText(MainActivity.this, "Изменено", Toast.LENGTH_SHORT).show();
                     } else {
@@ -847,10 +953,16 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle("Удалить задачу?")
                 .setMessage(task.getText())
                 .setPositiveButton("Удалить", (d, w) -> {
+                    String filePath = task.getFilePath();
+                    if (filePath != null) {
+                        File file = new File(filePath);
+                        if (file.exists()) {
+                            file.delete();
+                        }
+                    }
                     NotificationHelper.cancelNotification(this, task.getId());
                     taskList.remove(pos);
                     if (taskList.isEmpty()) {
-                        // Если список пуст, просто обновляем адаптер
                         taskAdapter.notifyDataSetChanged();
                     } else {
                         sortTasks();
@@ -871,18 +983,6 @@ public class MainActivity extends AppCompatActivity {
     private void saveTasksImmediate() {
         synchronized (saveLock) {
             SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-
-            // Защита от случайного удаления всех задач
-            if (taskList.isEmpty()) {
-                int previousCount = prefs.getInt("count", -1);
-                if (previousCount > 0) {
-                    Log.e("SAVE", "Попытка сохранить пустой список! Было задач: " + previousCount);
-                    // Восстанавливаем из резервной копии
-                    restoreTasksFromBackup();
-                    return;
-                }
-            }
-
             SharedPreferences.Editor ed = prefs.edit();
             ed.putInt("count", taskList.size());
             for (int i = 0; i < taskList.size(); i++) {
@@ -893,12 +993,12 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     ed.remove("date_" + i);
                 }
-                if (t.hasFile() && t.getFileUri() != null) {
-                    ed.putString("file_" + i, t.getFileUri());
+                if (t.hasFile() && t.getFilePath() != null) {
+                    ed.putString("file_" + i, t.getFilePath());
                 } else {
                     ed.remove("file_" + i);
                 }
-                if (t.hasValidReaction()) {
+                if (t.getReaction() != null && !t.getReaction().isEmpty()) {
                     ed.putString("reaction_" + i, t.getReaction());
                 } else {
                     ed.remove("reaction_" + i);
@@ -910,7 +1010,7 @@ public class MainActivity extends AppCompatActivity {
             }
             ed.apply();
         }
-   }
+    }
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -938,7 +1038,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Проверяем, дал ли пользователь разрешение после возврата из настроек
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             if (alarmManager != null && alarmManager.canScheduleExactAlarms()) {
@@ -947,27 +1046,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void restoreTasksFromBackup() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        int backupCount = prefs.getInt("backup_count", 0);
-
-        if (backupCount > 0 && taskList.isEmpty()) {
-            ArrayList<Task> restoredList = new ArrayList<>();
-            for (int i = 0; i < backupCount; i++) {
-                String text = prefs.getString("backup_task_" + i, "");
-                if (!text.isEmpty()) {
-                    Task task = new Task(text, null, null, null, false, -1, -1);
-                    task.setId(UUID.randomUUID().toString());
-                    restoredList.add(task);
-                }
-            }
-            if (!restoredList.isEmpty()) {
-                taskList.clear();
-                taskList.addAll(restoredList);
-                sortTasks();
-                taskAdapter.notifyDataSetChanged();
-                saveTasksImmediate();
-            }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (rewardManager != null) {
+            rewardManager.destroy();
         }
     }
+
 }

@@ -68,20 +68,17 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
         holder.textViewCheckbox.setOnClickListener(v -> doneListener.onToggleDone(position));
 
-        // ИСПРАВЛЕНО: Реакция
-        if (task.hasValidReaction()) {
-            String reaction = task.getReaction();
-            switch (reaction) {
-                case "like": holder.textViewReaction.setText("❤️"); break;
-                case "lightning": holder.textViewReaction.setText("⚡"); break;
-                case "cat": holder.textViewReaction.setText("😺"); break;
-            }
+        // ИСПРАВЛЕНО: Отображаем САМ ЭМОДЗИ, а не название
+        String reaction = task.getReaction();
+        if (reaction != null && !reaction.trim().isEmpty()) {
+            // Если реакция - это эмодзи (❤️, ⚡, 😺 или любой другой), показываем его
+            holder.textViewReaction.setText(reaction);
             holder.textViewReaction.setVisibility(View.VISIBLE);
         } else {
             holder.textViewReaction.setVisibility(View.GONE);
         }
 
-        // ИСПРАВЛЕНО: Файл
+        // Файл
         if (task.hasFile()) {
             holder.textViewFileIcon.setVisibility(View.VISIBLE);
         } else {

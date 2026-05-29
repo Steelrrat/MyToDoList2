@@ -9,39 +9,43 @@ public class Task implements Serializable {
     private String id;
     private String text;
     private Date date;
-    private String fileUri;
+    private String filePath;  // ИЗМЕНЕНО: fileUri -> filePath
     private String reaction;
     private boolean done;
     private int hour;
     private int minute;
 
-    public Task(String text, Date date, String fileUri) {
+    private String selectedEmoji;
+
+    public Task(String text, Date date, String filePath) {
         this.id = UUID.randomUUID().toString();
         this.text = text;
         this.date = date;
-        this.fileUri = (fileUri != null && !fileUri.isEmpty() && !fileUri.equals("null") && fileUri.length() > 5) ? fileUri : null;
+        this.filePath = (filePath != null && !filePath.isEmpty() && !filePath.equals("null") && filePath.length() > 5) ? filePath : null;
         this.reaction = null;
         this.done = false;
         this.hour = -1;
         this.minute = -1;
+        this.selectedEmoji = null;
     }
 
-    public Task(String text, Date date, String fileUri, String reaction, boolean done, int hour, int minute) {
+    public Task(String text, Date date, String filePath, String reaction, boolean done, int hour, int minute) {
         this.id = UUID.randomUUID().toString();
         this.text = text;
         this.date = date;
-        this.fileUri = (fileUri != null && !fileUri.isEmpty() && !fileUri.equals("null") && fileUri.length() > 5) ? fileUri : null;
+        this.filePath = (filePath != null && !filePath.isEmpty() && !filePath.equals("null") && filePath.length() > 5) ? filePath : null;
         this.reaction = (reaction != null && !reaction.isEmpty() && !reaction.equals("null")) ? reaction : null;
         this.done = done;
         this.hour = hour;
         this.minute = minute;
+        this.selectedEmoji = null;
     }
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getText() { return text; }
     public Date getDate() { return date; }
-    public String getFileUri() { return fileUri; }
+    public String getFilePath() { return filePath; }  // ИЗМЕНЕНО
     public String getReaction() { return reaction; }
     public boolean isDone() { return done; }
     public int getHour() { return hour; }
@@ -49,11 +53,12 @@ public class Task implements Serializable {
     public boolean hasTime() { return hour >= 0 && minute >= 0; }
 
     public void setReaction(String reaction) {
+        // Сохраняем как есть - это может быть эмодзи или null
         this.reaction = (reaction != null && !reaction.isEmpty() && !reaction.equals("null")) ? reaction : null;
     }
     public void setDone(boolean done) { this.done = done; }
-    public void setFileUri(String uri) {
-        this.fileUri = (uri != null && !uri.isEmpty() && !uri.equals("null") && uri.length() > 5) ? uri : null;
+    public void setFilePath(String path) {  // ИЗМЕНЕНО
+        this.filePath = (path != null && !path.isEmpty() && !path.equals("null") && path.length() > 5) ? path : null;
     }
     public void setTime(int hour, int minute) {
         this.hour = hour;
@@ -76,11 +81,10 @@ public class Task implements Serializable {
     }
 
     public boolean hasFile() {
-        return fileUri != null
-                && !fileUri.isEmpty()
-                && !fileUri.equals("null")
-                && fileUri.length() > 5
-                && (fileUri.startsWith("content://") || fileUri.startsWith("file://"));
+        return filePath != null
+                && !filePath.isEmpty()
+                && !filePath.equals("null")
+                && filePath.length() > 5;
     }
 
     public boolean hasValidReaction() {
@@ -113,5 +117,15 @@ public class Task implements Serializable {
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
         return cal;
+
+
+    }
+
+    public String getSelectedEmoji() {
+        return selectedEmoji;
+    }
+
+    public void setSelectedEmoji(String selectedEmoji) {
+        this.selectedEmoji = selectedEmoji;
     }
 }
