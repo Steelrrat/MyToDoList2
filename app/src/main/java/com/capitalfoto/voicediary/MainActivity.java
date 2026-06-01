@@ -40,7 +40,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.GridLayoutManager;
+
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -51,13 +51,14 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
+
 import java.util.Locale;
 import java.util.UUID;
+
 
 public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -85,9 +86,14 @@ public class MainActivity extends AppCompatActivity {
     private RewardManager rewardManager;
     private EmojiUnlockManager emojiUnlockManager;
 
+    private ActivityResultLauncher<String> fileLauncherForAdd;
+
+    private ActivityResultLauncher<String> fileLauncherForEdit;
+
     private final Handler saveHandler = new Handler(Looper.getMainLooper());
     private final Runnable saveRunnable = this::saveTasksImmediate;
     private final Object saveLock = new Object();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -828,7 +834,8 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
-        fileLauncher = registerForActivityResult(
+        // Лаунчер для диалога СОЗДАНИЯ задачи
+        fileLauncherForAdd = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null && currentDialog != null) {
@@ -836,17 +843,36 @@ public class MainActivity extends AppCompatActivity {
                         if (newFilePath != null) {
                             tempStoredFilePath = newFilePath;
 
-                            // Обновляем UI в диалоге - используем CardView
                             LinearLayout fileManageLayout = currentDialog.findViewById(R.id.fileManageLayout);
-                            CardView btnAttachCard = currentDialog.findViewById(R.id.buttonEditAttachCard);
-                            TextView txtFile = currentDialog.findViewById(R.id.textEditFile);
+                            TextView txtFile = currentDialog.findViewById(R.id.textAttachedFile);
+                            CardView btnAttachCard = currentDialog.findViewById(R.id.buttonAttachCard);
 
                             String fileName = getFileName(uri);
-                            txtFile.setText(fileName);
-                            fileManageLayout.setVisibility(View.VISIBLE);
-                            if (btnAttachCard != null) {
-                                btnAttachCard.setVisibility(View.GONE);  // скрываем карточку
-                            }
+                            if (txtFile != null) txtFile.setText(fileName);
+                            if (fileManageLayout != null) fileManageLayout.setVisibility(View.VISIBLE);
+                            if (btnAttachCard != null) btnAttachCard.setVisibility(View.GONE);
+                        }
+                    }
+                }
+        );
+
+        // Лаунчер для диалога РЕДАКТИРОВАНИЯ задачи
+        fileLauncherForEdit = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null && currentDialog != null) {
+                        String newFilePath = copyFileToInternalStorage(uri);
+                        if (newFilePath != null) {
+                            tempStoredFilePath = newFilePath;
+
+                            LinearLayout fileManageLayout = currentDialog.findViewById(R.id.fileManageLayout);
+                            TextView txtFile = currentDialog.findViewById(R.id.textEditFile);
+                            CardView btnAttachCard = currentDialog.findViewById(R.id.buttonEditAttachCard);
+
+                            String fileName = getFileName(uri);
+                            if (txtFile != null) txtFile.setText(fileName);
+                            if (fileManageLayout != null) fileManageLayout.setVisibility(View.VISIBLE);
+                            if (btnAttachCard != null) btnAttachCard.setVisibility(View.GONE);
                         }
                     }
                 }
@@ -870,7 +896,7 @@ public class MainActivity extends AppCompatActivity {
 
         // НОВАЯ КАРТОЧКА для прикрепления файла
         CardView btnAttachCard = view.findViewById(R.id.buttonAttachCard);
-        btnAttachCard.setOnClickListener(v -> fileLauncher.launch("*/*"));
+        btnAttachCard.setOnClickListener(v -> fileLauncherForAdd.launch("*/*"));
 
         // Крестик удаления файла
         TextView btnRemoveFile = view.findViewById(R.id.buttonRemoveFile);
@@ -924,7 +950,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Карточка файла - клик для замены
         CardView fileCardView = view.findViewById(R.id.fileCardView);
-        fileCardView.setOnClickListener(v -> fileLauncher.launch("*/*"));
+        fileCardView.setOnClickListener(v -> fileLauncherForAdd.launch("*/*"));
 
         // Карточки даты и времени
         CardView dateCardView = view.findViewById(R.id.dateCardView);
@@ -986,7 +1012,7 @@ public class MainActivity extends AppCompatActivity {
 
         // НОВАЯ КАРТОЧКА для прикрепления файла (вместо кнопки)
         CardView btnAttachCard = view.findViewById(R.id.buttonEditAttachCard);
-        btnAttachCard.setOnClickListener(v -> fileLauncher.launch("*/*"));
+        btnAttachCard.setOnClickListener(v -> fileLauncherForEdit.launch("*/*"));
 
         // Крестик удаления файла
         TextView btnRemoveFile = view.findViewById(R.id.buttonRemoveFile);
@@ -1045,7 +1071,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Карточка файла - клик для замены
         CardView fileCardView = view.findViewById(R.id.fileCardView);
-        fileCardView.setOnClickListener(v -> fileLauncher.launch("*/*"));
+        fileCardView.setOnClickListener(v -> fileLauncherForEdit.launch("*/*"));
 
         // Карточки даты и времени
         CardView dateCardView = view.findViewById(R.id.dateCardView);
@@ -1194,14 +1220,10 @@ public class MainActivity extends AppCompatActivity {
         if (tempDate != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
             String dateStr = sdf.format(tempDate);
-            if (tempHour >= 0 && tempMinute >= 0) {
-                dateStr += " " + String.format("%02d:%02d", tempHour, tempMinute);
-            }
+            // Только дата, без времени
             txtDate.setText(dateStr);
-        } else if (tempHour >= 0 && tempMinute >= 0) {
-            txtDate.setText(String.format("%02d:%02d", tempHour, tempMinute));
         } else {
-            txtDate.setText("Дата не выбрана");
+            txtDate.setText("Введите дату");
         }
     }
 
@@ -1334,7 +1356,7 @@ public class MainActivity extends AppCompatActivity {
         if (tempHour >= 0 && tempMinute >= 0) {
             txtTime.setText(String.format("%02d:%02d", tempHour, tempMinute));
         } else {
-            txtTime.setText("Время не выбрано");
+            txtTime.setText("Введите время");
         }
     }
 
