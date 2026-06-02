@@ -15,7 +15,7 @@ import com.yandex.mobile.ads.rewarded.RewardedAdLoadListener;  // ← ДОБАВ
 
 public class YandexRewardManager {
     private static final String TAG = "YandexReward";
-    private static final String AD_UNIT_ID = "demo-rewarded-yandex";
+    private static final String AD_UNIT_ID = "R-M-19373144-1";
 
     private RewardedAd rewardedAd;
     private final Context context;
