@@ -59,6 +59,9 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
 
+import com.capitalfoto.voicediary.YandexRewardManager;
+import com.yandex.mobile.ads.common.YandexAds;
+
 
 public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -71,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String THEME_KEY = "is_dark_theme";
     private static final String PREFS_EXACT_ALARM_SHOWN = "exact_alarm_shown";
     private ActivityResultLauncher<Intent> voiceLauncher;
-    private ActivityResultLauncher<String> fileLauncher;
 
     private String tempStoredFilePath = null;
     private Date tempDate = null;
@@ -81,9 +83,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText currentEditText = null;
     private AlertDialog currentDialog = null;
     private ActivityResultLauncher<String[]> permissionsLauncher;
-    private EmojiRecyclerAdapter emojiAdapter;
 
-    private RewardManager rewardManager;
     private EmojiUnlockManager emojiUnlockManager;
 
     private ActivityResultLauncher<String> fileLauncherForAdd;
@@ -93,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
     private final Handler saveHandler = new Handler(Looper.getMainLooper());
     private final Runnable saveRunnable = this::saveTasksImmediate;
     private final Object saveLock = new Object();
+
+    private YandexRewardManager rewardManager;
 
 
     @Override
@@ -156,9 +158,19 @@ public class MainActivity extends AppCompatActivity {
 
         setupSwipe();
         setupLaunchers();
-        rewardManager = new RewardManager(this);
         emojiUnlockManager = new EmojiUnlockManager(this);
         setupPermissionsLauncher();
+
+
+        // ============================================
+        // Инициализация Yandex Mobile Ads SDK
+        YandexAds.initialize(this, () -> {
+            Log.d("YandexAds", "SDK initialized");
+        });
+
+        // Создание менеджера рекламы
+        rewardManager = new YandexRewardManager(this);
+        // ============================================
 
         fabAdd.setOnClickListener(v -> showAddDialog());
 
