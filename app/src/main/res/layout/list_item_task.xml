@@ -4,37 +4,42 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardView"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
+    android:layout_height="104dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginEnd="10dp"
+    android:layout_marginBottom="6dp"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="1dp"
     app:cardBackgroundColor="@color/card_background">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="horizontal"
-        android:padding="12dp"
+        android:paddingStart="14dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="10dp"
         android:gravity="center_vertical">
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatCheckBox
             android:id="@+id/textViewCheckbox"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:text="☐"
-            android:textSize="26sp"
-            android:textColor="#757575"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:gravity="center"
+            android:button="@drawable/task_checkbox_selector"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            android:contentDescription="Выполнено" />
 
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:layout_marginStart="8dp"
+            android:gravity="center_vertical"
+            android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp">
 
             <TextView
@@ -44,7 +49,10 @@
                 android:textSize="16sp"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold"
-                android:lineSpacingExtra="2dp" />
+                android:maxLines="3"
+                android:ellipsize="end"
+                android:lineSpacingExtra="1dp"
+                android:includeFontPadding="false" />
 
             <TextView
                 android:id="@+id/textViewDate"
@@ -52,41 +60,38 @@
                 android:layout_height="wrap_content"
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
-                android:layout_marginTop="4dp" />
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginTop="4dp"
+                android:includeFontPadding="false" />
 
         </LinearLayout>
 
-        <!-- Смайл -->
         <TextView
             android:id="@+id/textViewReaction"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:textSize="34sp"
-            android:gravity="center"
-            android:visibility="gone"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="4dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="2dp"
-            android:includeFontPadding="false" />
-
-        <!-- Скрепка -->
-        <TextView
-            android:id="@+id/textViewFileIcon"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:text="📎"
-            android:textSize="26sp"
+            android:textSize="30sp"
             android:gravity="center"
             android:visibility="gone"
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="4dp"
-            android:layout_marginStart="2dp"
-            android:layout_marginEnd="4dp"
+            android:padding="3dp"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:id="@+id/textViewFileIcon"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:text="📎"
+            android:textSize="24sp"
+            android:gravity="center"
+            android:visibility="gone"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="3dp"
             android:includeFontPadding="false" />
 
     </LinearLayout>

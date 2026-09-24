@@ -1,34 +1,154 @@
 package com.capitalfoto.voicediary;
 
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.Manifest;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.app.AlarmManager;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.app.DatePickerDialog;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.app.ProgressDialog;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.app.TimePickerDialog;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.content.ClipData;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.content.ClipboardManager;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.content.ContentResolver;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.content.Context;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.content.Intent;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.content.SharedPreferences;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.content.pm.PackageManager;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.database.Cursor;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.net.Uri;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.os.Build;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.os.Handler;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.os.Looper;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.os.PowerManager;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.provider.OpenableColumns;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.provider.Settings;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.speech.RecognizerIntent;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.view.LayoutInflater;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.view.View;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.widget.Button;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.widget.EditText;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.widget.LinearLayout;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.widget.TextView;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.widget.Toast;
 import androidx.recyclerview.widget.GridLayoutManager;
 import java.util.List;
@@ -67,8 +187,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private TaskAdapter taskAdapter;
     private ArrayList<Task> taskList;
-    private FloatingActionButton fabAdd;
-    private Button fabTheme;;
+    private Button fabAdd;
+    private Button fabTheme;
     private static final String PREFS_NAME = "TodoPrefs";
     private static final String PREFS_THEME = "theme_prefs";
     private static final String THEME_KEY = "is_dark_theme";
@@ -187,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
 
         RecyclerView emojiRecyclerView = view.findViewById(R.id.quickEmojiRecyclerView);
         Button unlockAllButton = view.findViewById(R.id.quickUnlockAllButton);
-        TextView hintText = view.findViewById(R.id.quickUnlockHintText);
+        TextView hintText = null;
 
         // Настройка сетки смайлов
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 6);
@@ -209,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
                     showQuickEmojiPicker(task, position);
                 });
             });
-            if (hintText != null) hintText.setVisibility(View.VISIBLE);
+            if (hintText != null) hintText.setVisibility(View.GONE);
         }
 
         EmojiRecyclerAdapter adapter = new EmojiRecyclerAdapter(
@@ -218,7 +338,6 @@ public class MainActivity extends AppCompatActivity {
                     task.setReaction(emoji);
                     saveTasksDebounced();
                     taskAdapter.notifyItemChanged(position);
-                    Toast.makeText(this, "Смайл " + emoji + " добавлен", Toast.LENGTH_SHORT).show();
                 }
         );
         emojiRecyclerView.setAdapter(adapter);
@@ -301,7 +420,6 @@ public class MainActivity extends AppCompatActivity {
                 NotificationHelper.scheduleNotification(this, task);
             }
         }
-        Toast.makeText(this, "Уведомления обновлены", Toast.LENGTH_SHORT).show();
     }
 
     private void checkAndShowExactAlarmForFirstTime() {
@@ -393,6 +511,58 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    private void saveTasksImmediately() {
+        SharedPreferences prefs =
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = prefs.edit();
+
+        int oldCount = prefs.getInt("count", 0);
+
+        editor.putInt("count", taskList.size());
+
+        for (int i = 0; i < taskList.size(); i++) {
+            Task task = taskList.get(i);
+
+            editor.putString("task_" + i, task.getText());
+
+            if (task.getDate() != null) {
+                editor.putLong("date_" + i, task.getDate().getTime());
+            } else {
+                editor.remove("date_" + i);
+            }
+
+            if (task.getFilePath() != null) {
+                editor.putString("file_" + i, task.getFilePath());
+            } else {
+                editor.remove("file_" + i);
+            }
+
+            if (task.getReaction() != null) {
+                editor.putString("reaction_" + i, task.getReaction());
+            } else {
+                editor.remove("reaction_" + i);
+            }
+
+            editor.putBoolean("done_" + i, task.isDone());
+            editor.putInt("hour_" + i, task.getHour());
+            editor.putInt("minute_" + i, task.getMinute());
+            editor.putString("id_" + i, task.getId());
+        }
+
+        for (int i = taskList.size(); i < oldCount; i++) {
+            editor.remove("task_" + i);
+            editor.remove("date_" + i);
+            editor.remove("file_" + i);
+            editor.remove("reaction_" + i);
+            editor.remove("done_" + i);
+            editor.remove("hour_" + i);
+            editor.remove("minute_" + i);
+            editor.remove("id_" + i);
+        }
+
+        editor.commit();
+    }
     private void migrateDataIfNeeded(SharedPreferences prefs) {
         int currentVersion = prefs.getInt("data_version", 0);
         if (currentVersion < 3) {
@@ -515,11 +685,9 @@ public class MainActivity extends AppCompatActivity {
         if (isDark) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             themePrefs.edit().putBoolean(THEME_KEY, false).apply();
-            Toast.makeText(this, "☀️ Светлая тема", Toast.LENGTH_SHORT).show();
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
             themePrefs.edit().putBoolean(THEME_KEY, true).apply();
-            Toast.makeText(this, "🌙 Ночная тема", Toast.LENGTH_SHORT).show();
         }
 
         updateThemeIcon(fabTheme);
@@ -527,16 +695,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateThemeIcon(Button fabTheme) {
-        SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
-        boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
+        SharedPreferences themePrefs =
+                getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
 
-        if (isDark) {
-            fabTheme.setText("☀️");
-            fabTheme.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFF9800));
-        } else {
-            fabTheme.setText("🌙");
-            fabTheme.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF9C27B0));
-        }
+        boolean isDark =
+                themePrefs.getBoolean(THEME_KEY, false);
+
+        fabTheme.setText(
+                isDark ? "Светлая тема" : "Тёмная тема"
+        );
     }
 
     private void toggleTaskDone(int position) {
@@ -557,10 +724,15 @@ public class MainActivity extends AppCompatActivity {
             taskAdapter.notifyItemChanged(oldPosition);
         }
 
-        Toast.makeText(this, newState ? "✅ Выполнено" : "❌ Отмена", Toast.LENGTH_SHORT).show();
 
-        if (newState && task.hasTime()) {
-            NotificationHelper.cancelNotification(this, task.getId());
+        if (task.hasTime()) {
+            if (newState) {
+                // Task completed: its reminder must no longer appear.
+                NotificationHelper.cancelNotification(this, task.getId());
+            } else {
+                // Completion was cancelled: restore the reminder if it is still valid.
+                NotificationHelper.scheduleNotification(this, task);
+            }
         }
     }
 
@@ -609,35 +781,76 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_view_task, null);
         TextView textTask = view.findViewById(R.id.viewTaskText);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            textTask.setJustificationMode(android.text.Layout.JUSTIFICATION_MODE_INTER_WORD);
+        }
         TextView textDate = view.findViewById(R.id.viewTaskDate);
+        TextView textTime = view.findViewById(R.id.viewTaskTime);
+        LinearLayout timeBlock = view.findViewById(R.id.viewTaskTimeBlock);
         CardView dateTimeContainer = view.findViewById(R.id.dateTimeContainer);
         CardView fileContainer = view.findViewById(R.id.fileContainer);
         TextView btnOpenFile = view.findViewById(R.id.btnOpenFile);
 
         RecyclerView emojiRecyclerView = view.findViewById(R.id.emojiRecyclerView);
         Button unlockAllButton = view.findViewById(R.id.unlockAllButton);
+
+        SpannableString unlockText = new SpannableString(
+                "Разблокировать все смайлы\nпосле рекламного ролика"
+        );
+
+        int secondLineStart = unlockText.toString().indexOf('\n') + 1;
+
+        unlockText.setSpan(
+                new RelativeSizeSpan(0.82f),
+                secondLineStart,
+                unlockText.length(),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        );
+
+        unlockText.setSpan(
+                new ForegroundColorSpan(
+                        ContextCompat.getColor(this, R.color.text_secondary)
+                ),
+                secondLineStart,
+                unlockText.length(),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        );
+
+        unlockAllButton.setText(unlockText);
         TextView hintText = view.findViewById(R.id.unlockHintText);
 
         textTask.setText(task.getText());
 
         // --- НАСТРОЙКА ДАТЫ И ВРЕМЕНИ ---
-        String formattedDate = task.getFormattedDate();
-        if (formattedDate != null && !formattedDate.equals("Без даты")) {
-            textDate.setText(formattedDate);
+        if (task.getDate() != null || task.hasTime()) {
             dateTimeContainer.setVisibility(View.VISIBLE);
 
-            // Устанавливаем цвет даты в зависимости от темы
-            SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
-            boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
-            int accentColor;
-            if (isDark) {
-                // Темная тема - синий
-                accentColor = ContextCompat.getColor(this, R.color.dark_accent);
+            if (task.getDate() != null) {
+                java.text.SimpleDateFormat dateFormat =
+                        new java.text.SimpleDateFormat(
+                                "dd.MM.yyyy",
+                                java.util.Locale.getDefault()
+                        );
+
+                textDate.setText(dateFormat.format(task.getDate()));
+                textDate.setVisibility(View.VISIBLE);
             } else {
-                // Светлая тема - зеленый
-                accentColor = ContextCompat.getColor(this, R.color.light_accent);
+                textDate.setVisibility(View.GONE);
             }
-            textDate.setTextColor(accentColor);
+
+            if (task.hasTime()) {
+                textTime.setText(
+                        String.format(
+                                java.util.Locale.getDefault(),
+                                "%02d:%02d",
+                                task.getHour(),
+                                task.getMinute()
+                        )
+                );
+                timeBlock.setVisibility(View.VISIBLE);
+            } else {
+                timeBlock.setVisibility(View.GONE);
+            }
         } else {
             dateTimeContainer.setVisibility(View.GONE);
         }
@@ -656,11 +869,9 @@ public class MainActivity extends AppCompatActivity {
                 // Темная тема - синий
                 buttonColor = ContextCompat.getColor(this, R.color.dark_accent);
             } else {
-                // Светлая тема - зеленый
+                // Светлая тема
                 buttonColor = ContextCompat.getColor(this, R.color.light_accent);
             }
-
-            fileContainer.setCardBackgroundColor(buttonColor);
 
             // Обработчик открытия файла
             View.OnClickListener openFileListener = v -> openFile(filePath);
@@ -696,31 +907,33 @@ public class MainActivity extends AppCompatActivity {
                         setupEmojiRecyclerView(emojiRecyclerView, unlockAllButton, task);
                     });
                 });
-                if (hintText != null) hintText.setVisibility(View.VISIBLE);
+                if (hintText != null) hintText.setVisibility(View.GONE);
             }
 
             setupEmojiRecyclerView(emojiRecyclerView, unlockAllButton, task);
         }
 
-        AlertDialog dialog = builder.setTitle(null)
-                .setView(view)
-                .setPositiveButton("Закрыть", null)
-                .show();
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        dialog.setContentView(view);
+        dialog.setCancelable(true);
 
-        // Устанавливаем цвет кнопки "Закрыть" в соответствии с темой
-        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-        if (positiveButton != null) {
-            SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
-            boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
+        TextView closeButton = view.findViewById(R.id.buttonCloseView);
+        closeButton.setOnClickListener(v -> dialog.dismiss());
 
-            if (isDark) {
-                positiveButton.setTextColor(ContextCompat.getColor(this, R.color.dark_accent));
-            } else {
-                positiveButton.setTextColor(ContextCompat.getColor(this, R.color.light_accent));
-            }
+        dialog.show();
+
+        if (dialog.getWindow() != null) {
+            android.view.Window window = dialog.getWindow();
+
+            window.getDecorView().setPadding(0, 0, 0, 0);
+            window.setBackgroundDrawableResource(R.color.background);
+
+            window.setLayout(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            );
         }
     }
-
     private void setupEmojiRecyclerView(RecyclerView recyclerView, Button unlockAllButton, Task task) {
         boolean allUnlocked = emojiUnlockManager.areAllNewEmojisUnlocked();
 
@@ -752,7 +965,7 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
             if (hintText != null) {
-                hintText.setVisibility(View.VISIBLE);
+                hintText.setVisibility(View.GONE);
             }
         }
 
@@ -762,13 +975,29 @@ public class MainActivity extends AppCompatActivity {
                     task.setReaction(emoji);
                     saveTasksDebounced();
                     taskAdapter.notifyDataSetChanged();
-                    Toast.makeText(this, "Смайл " + emoji + " добавлен", Toast.LENGTH_SHORT).show();
 
                     // Обновляем отображение в списке, но не показываем в диалоге
                     // (в диалоге больше нет блока с текущей реакцией)
                 }
         );
         recyclerView.setAdapter(adapter);
+
+        // EMOJI_THREE_ROWS_PATCH
+        int columns = 6;
+        int rows = (int) Math.ceil(allEmojis.size() / (double) columns);
+        rows = Math.max(1, Math.min(3, rows));
+
+        int rowHeightDp = 58;
+        int heightPx = (int) (
+                rowHeightDp * rows *
+                getResources().getDisplayMetrics().density
+        );
+
+        android.view.ViewGroup.LayoutParams emojiLp =
+                recyclerView.getLayoutParams();
+
+        emojiLp.height = heightPx;
+        recyclerView.setLayoutParams(emojiLp);
     }
 
     private void showRewardedAdForUnlockAll(Runnable onUnlocked) {
@@ -787,7 +1016,6 @@ public class MainActivity extends AppCompatActivity {
                     if (progressDialog.isShowing()) progressDialog.dismiss();
                     runOnUiThread(() -> {
                         emojiUnlockManager.unlockAllNewEmojis();
-                        Toast.makeText(this, "🎉 ВСЕ СМАЙЛЫ РАЗБЛОКИРОВАНЫ! 🎉", Toast.LENGTH_LONG).show();
                         if (onUnlocked != null) onUnlocked.run();
                     });
                 },
@@ -829,6 +1057,60 @@ public class MainActivity extends AppCompatActivity {
         }).attachToRecyclerView(recyclerView);
     }
 
+    private String formatVoiceFragment(String text) {
+        if (text == null) return "";
+
+        String result = text.trim();
+        if (result.isEmpty()) return "";
+
+        String first = result.substring(0, 1).toUpperCase(Locale.getDefault());
+        result = first + result.substring(1);
+
+        char last = result.charAt(result.length() - 1);
+        if (last != '.' && last != '!' && last != '?' && last != '…') {
+            result += ".";
+        }
+
+        return result;
+    }
+
+    private void configureExpandableTaskEditor(EditText editText) {
+        if (editText == null) return;
+
+        final int normalMinHeight = (int) (56 * getResources().getDisplayMetrics().density);
+        final int expandedHeight = getResources().getDisplayMetrics().heightPixels / 2;
+
+        editText.setMinHeight(normalMinHeight);
+        editText.setMaxLines(20);
+        editText.setVerticalScrollBarEnabled(true);
+
+        editText.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                editText.post(() -> {
+                    if (editText.getLineCount() > 2) {
+                        editText.setMinHeight(expandedHeight);
+                    } else {
+                        editText.setMinHeight(normalMinHeight);
+                    }
+                });
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+            }
+        });
+
+        editText.post(() -> {
+            if (editText.getLineCount() > 2) {
+                editText.setMinHeight(expandedHeight);
+            }
+        });
+    }
     private void setupLaunchers() {
         voiceLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -836,9 +1118,13 @@ public class MainActivity extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null && currentEditText != null) {
                         ArrayList<String> matches = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                         if (matches != null && !matches.isEmpty()) {
-                            String voiceText = matches.get(0);
+                            String voiceText = formatVoiceFragment(matches.get(0));
                             String currentText = currentEditText.getText().toString();
-                            String newText = currentText + (currentText.isEmpty() ? "" : " ") + voiceText;
+
+                            String newText = currentText.isEmpty()
+                                    ? voiceText
+                                    : currentText + " " + voiceText;
+
                             currentEditText.setText(newText);
                             currentEditText.setSelection(newText.length());
                         }
@@ -901,6 +1187,10 @@ public class MainActivity extends AppCompatActivity {
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_task, null);
         EditText editText = view.findViewById(R.id.editTaskText);
         currentEditText = editText;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            editText.setJustificationMode(android.text.Layout.JUSTIFICATION_MODE_INTER_WORD);
+        }
+        configureExpandableTaskEditor(editText);
 
         // Кнопка голосового ввода
         Button btnVoice = view.findViewById(R.id.buttonVoice);
@@ -920,17 +1210,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Контейнер с файлом
         LinearLayout fileManageLayout = view.findViewById(R.id.fileManageLayout);
-
-        // Определяем цвет темы
-        SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
-        boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
-        int accentColor = isDark ?
-                ContextCompat.getColor(this, R.color.dark_accent) :
-                ContextCompat.getColor(this, R.color.light_accent);
-
-        txtDate.setTextColor(accentColor);
-        txtTime.setTextColor(accentColor);
-        txtFile.setTextColor(accentColor);
 
         updateDateDisplay(txtDate);
         updateTimeDisplay(txtTime);
@@ -957,7 +1236,6 @@ public class MainActivity extends AppCompatActivity {
             fileManageLayout.setVisibility(View.GONE);
             btnAttachCard.setVisibility(View.VISIBLE);
             txtFile.setText("");
-            Toast.makeText(this, "Файл удален", Toast.LENGTH_SHORT).show();
         });
 
         // Карточка файла - клик для замены
@@ -984,7 +1262,6 @@ public class MainActivity extends AppCompatActivity {
                         if (tempHour >= 0 && tempMinute >= 0) {
                             NotificationHelper.scheduleNotification(MainActivity.this, newTask);
                         }
-                        Toast.makeText(MainActivity.this, "Добавлено", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(MainActivity.this, "Введите задачу", Toast.LENGTH_SHORT).show();
                     }
@@ -996,8 +1273,8 @@ public class MainActivity extends AppCompatActivity {
         dialog.setOnShowListener(dialogInterface -> {
             Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-            if (positiveButton != null) positiveButton.setTextColor(accentColor);
-            if (negativeButton != null) negativeButton.setTextColor(accentColor);
+            if (positiveButton != null) positiveButton.setTextColor(ContextCompat.getColor(this, R.color.dialog_control_text));
+            if (negativeButton != null) negativeButton.setTextColor(ContextCompat.getColor(this, R.color.dialog_control_text));
         });
 
         dialog.setOnDismissListener(dialogInterface -> clearDialogReferences());
@@ -1015,8 +1292,12 @@ public class MainActivity extends AppCompatActivity {
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_edit_task, null);
         EditText editText = view.findViewById(R.id.editTaskText);
         currentEditText = editText;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            editText.setJustificationMode(android.text.Layout.JUSTIFICATION_MODE_INTER_WORD);
+        }
         editText.setText(oldTask.getText());
-        editText.selectAll();
+        editText.setSelection(editText.getText().length());
+        configureExpandableTaskEditor(editText);
 
         // Кнопка голосового ввода
         Button btnVoice = view.findViewById(R.id.buttonEditVoice);
@@ -1036,17 +1317,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Контейнер с файлом
         LinearLayout fileManageLayout = view.findViewById(R.id.fileManageLayout);
-
-        // Цвета темы
-        SharedPreferences themePrefs = getSharedPreferences(PREFS_THEME, MODE_PRIVATE);
-        boolean isDark = themePrefs.getBoolean(THEME_KEY, false);
-        int accentColor = isDark ?
-                ContextCompat.getColor(this, R.color.dark_accent) :
-                ContextCompat.getColor(this, R.color.light_accent);
-
-        txtDate.setTextColor(accentColor);
-        txtTime.setTextColor(accentColor);
-        txtFile.setTextColor(accentColor);
 
         updateDateDisplay(txtDate);
         updateTimeDisplay(txtTime);
@@ -1078,7 +1348,6 @@ public class MainActivity extends AppCompatActivity {
             fileManageLayout.setVisibility(View.GONE);
             btnAttachCard.setVisibility(View.VISIBLE);  // ← показываем карточку
             txtFile.setText("");
-            Toast.makeText(this, "Файл удален", Toast.LENGTH_SHORT).show();
         });
 
         // Карточка файла - клик для замены
@@ -1114,7 +1383,6 @@ public class MainActivity extends AppCompatActivity {
                         if (tempHour >= 0 && tempMinute >= 0 && !updatedTask.isDone()) {
                             NotificationHelper.scheduleNotification(MainActivity.this, updatedTask);
                         }
-                        Toast.makeText(MainActivity.this, "Изменено", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(MainActivity.this, "Задача не может быть пустой", Toast.LENGTH_SHORT).show();
                     }
@@ -1126,8 +1394,8 @@ public class MainActivity extends AppCompatActivity {
         dialog.setOnShowListener(dialogInterface -> {
             Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-            if (positiveButton != null) positiveButton.setTextColor(accentColor);
-            if (negativeButton != null) negativeButton.setTextColor(accentColor);
+            if (positiveButton != null) positiveButton.setTextColor(ContextCompat.getColor(this, R.color.dialog_control_text));
+            if (negativeButton != null) negativeButton.setTextColor(ContextCompat.getColor(this, R.color.dialog_control_text));
         });
 
         dialog.setOnDismissListener(dialogInterface -> clearDialogReferences());
@@ -1184,37 +1452,76 @@ public class MainActivity extends AppCompatActivity {
 
     private void showDatePicker(TextView targetTextView) {
         Calendar c = Calendar.getInstance();
-        new DatePickerDialog(this, (view1, year, month, day) -> {
+
+        DatePickerDialog dialog = new DatePickerDialog(this, (view1, year, month, day) -> {
             Calendar selected = Calendar.getInstance();
-            selected.set(year, month, day);
+            selected.set(year, month, day, 0, 0, 0);
+            selected.set(Calendar.MILLISECOND, 0);
+
             tempDate = selected.getTime();
             updateDateDisplay(targetTextView);
-            // Находим TextView времени и обновляем его цвет, если нужно
+
             if (currentDialog != null) {
                 TextView txtTime = currentDialog.findViewById(R.id.textEditTime);
                 if (txtTime != null) {
                     updateTimeDisplay(txtTime);
                 }
             }
-        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
-    }
+        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
 
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 0);
+        today.set(Calendar.MINUTE, 0);
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+
+        dialog.getDatePicker().setMinDate(today.getTimeInMillis());
+        dialog.show();
+    }
     private void showTimePicker(TextView txtDate, TextView txtTime) {
         Calendar c = Calendar.getInstance();
-        int hour = tempHour >= 0 ? tempHour : c.get(Calendar.HOUR_OF_DAY);
-        int minute = tempMinute >= 0 ? tempMinute : c.get(Calendar.MINUTE);
+
+        int hour = tempHour >= 0
+                ? tempHour
+                : c.get(Calendar.HOUR_OF_DAY);
+
+        int minute = tempMinute >= 0
+                ? tempMinute
+                : c.get(Calendar.MINUTE);
+
         new TimePickerDialog(this, (view1, hourOfDay, minuteOfHour) -> {
+            if (tempDate != null) {
+                Calendar selectedDateTime = Calendar.getInstance();
+                selectedDateTime.setTime(tempDate);
+                selectedDateTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                selectedDateTime.set(Calendar.MINUTE, minuteOfHour);
+                selectedDateTime.set(Calendar.SECOND, 0);
+                selectedDateTime.set(Calendar.MILLISECOND, 0);
+
+                Calendar now = Calendar.getInstance();
+
+                if (selectedDateTime.getTimeInMillis() <= now.getTimeInMillis()) {
+                    Toast.makeText(
+                            this,
+                            "Выберите будущее время",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                    return;
+                }
+            }
+
             tempHour = hourOfDay;
             tempMinute = minuteOfHour;
+
             updateDateDisplay(txtDate);
-            updateTimeDisplay(txtTime);  // Обновляем отображение времени
+            updateTimeDisplay(txtTime);
 
             if (tempDate == null) {
                 showNotificationTimeToast();
             }
+
         }, hour, minute, true).show();
     }
-
     private void updateDateDisplay(TextView txtDate) {
         if (txtDate == null) return;
 
@@ -1227,7 +1534,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             accentColor = ContextCompat.getColor(this, R.color.light_accent);
         }
-        txtDate.setTextColor(accentColor);
+        txtDate.setTextColor(ContextCompat.getColor(this, R.color.dialog_control_text));
 
         if (tempDate != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
@@ -1246,30 +1553,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void deleteTaskWithConfirm(int pos) {
+        if (pos < 0 || pos >= taskList.size()) {
+            return;
+        }
+
         Task task = taskList.get(pos);
+
         new AlertDialog.Builder(this)
                 .setTitle("Удалить задачу?")
                 .setMessage(task.getText())
                 .setPositiveButton("Удалить", (d, w) -> {
                     String filePath = task.getFilePath();
-                    if (filePath != null) {
+                    String taskId = task.getId();
+
+                    taskList.remove(pos);
+                    taskAdapter.notifyDataSetChanged();
+
+                    saveTasksImmediately();
+
+                    if (taskId != null && !taskId.isEmpty()) {
+                        NotificationHelper.cancelNotification(this, taskId);
+                    }
+
+                    if (filePath != null && !filePath.isEmpty()) {
                         File file = new File(filePath);
+
                         if (file.exists()) {
-                            file.delete();
+                            boolean deleted = file.delete();
+
+                            if (!deleted) {
+                                Log.w(
+                                        "TASK_DELETE",
+                                        "Не удалось удалить файл: " + filePath
+                                );
+                            }
                         }
                     }
-                    NotificationHelper.cancelNotification(this, task.getId());
-                    taskList.remove(pos);
-                    if (taskList.isEmpty()) {
-                        taskAdapter.notifyDataSetChanged();
-                    } else {
-                        sortTasks();
-                        taskAdapter.notifyDataSetChanged();
-                    }
-                    saveTasksDebounced();
-                    Toast.makeText(this, "Удалено", Toast.LENGTH_SHORT).show();
                 })
-                .setNegativeButton("Отмена", (d, w) -> taskAdapter.notifyItemChanged(pos))
+                .setNegativeButton("Отмена", null)
                 .show();
     }
 
@@ -1363,7 +1684,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             accentColor = ContextCompat.getColor(this, R.color.light_accent);
         }
-        txtTime.setTextColor(accentColor);
+        txtTime.setTextColor(ContextCompat.getColor(this, R.color.dialog_control_text));
 
         if (tempHour >= 0 && tempMinute >= 0) {
             txtTime.setText(String.format("%02d:%02d", tempHour, tempMinute));

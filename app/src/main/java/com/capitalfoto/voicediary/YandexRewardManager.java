@@ -19,20 +19,22 @@ public class YandexRewardManager {
 
     private RewardedAd rewardedAd;
     private final Context context;
+    private final RewardedAdLoader rewardedAdLoader;
     private Runnable onRewardCallback;
+    private Runnable onFailCallback;
+    private boolean rewardGranted;
 
     public YandexRewardManager(Context context) {
         this.context = context;
+        this.rewardedAdLoader = new RewardedAdLoader(context);
         loadRewardedAd();
     }
 
     private void loadRewardedAd() {
-        RewardedAdLoader loader = new RewardedAdLoader(context);
-
-        AdRequest adRequest = new AdRequest.Builder(AD_UNIT_ID).build();
+AdRequest adRequest = new AdRequest.Builder(AD_UNIT_ID).build();
 
         // ИСПРАВЛЕНО: убираем RewardedAdLoader. перед интерфейсом
-        loader.loadAd(adRequest, new RewardedAdLoadListener() {
+        rewardedAdLoader.loadAd(adRequest, new RewardedAdLoadListener() {
             @Override
             public void onAdLoaded(@NonNull RewardedAd ad) {
                 Log.d(TAG, "✅ Реклама загружена");
@@ -41,11 +43,15 @@ public class YandexRewardManager {
                 rewardedAd.setAdEventListener(new RewardedAdEventListener() {
                     @Override
                     public void onRewarded(@NonNull Reward reward) {
-                        Log.d(TAG, "🎁 Награда получена!");
+                        Log.d(TAG, "Reward received");
+                        rewardGranted = true;
+
                         if (onRewardCallback != null) {
                             onRewardCallback.run();
-                            onRewardCallback = null;
                         }
+
+                        onRewardCallback = null;
+                        onFailCallback = null;
                     }
 
                     @Override
@@ -55,12 +61,40 @@ public class YandexRewardManager {
 
                     @Override
                     public void onAdFailedToShow(@NonNull com.yandex.mobile.ads.common.AdError adError) {
-                        Log.e(TAG, "❌ Ошибка показа: " + adError.getDescription());
+                        Log.e(TAG, "Rewarded ad failed to show: " + adError.getDescription());
+
+                        if (rewardedAd != null) {
+                            rewardedAd.setAdEventListener(null);
+                            rewardedAd = null;
+                        }
+
+                        if (onFailCallback != null) {
+                            onFailCallback.run();
+                        }
+
+                        onRewardCallback = null;
+                        onFailCallback = null;
+                        rewardGranted = false;
+                        loadRewardedAd();
                     }
 
                     @Override
                     public void onAdDismissed() {
-                        Log.d(TAG, "❌ Реклама закрыта");
+                        Log.d(TAG, "Rewarded ad dismissed");
+
+                        if (!rewardGranted && onFailCallback != null) {
+                            onFailCallback.run();
+                        }
+
+                        onRewardCallback = null;
+                        onFailCallback = null;
+                        rewardGranted = false;
+
+                        if (rewardedAd != null) {
+                            rewardedAd.setAdEventListener(null);
+                            rewardedAd = null;
+                        }
+
                         loadRewardedAd();
                     }
 
@@ -85,6 +119,8 @@ public class YandexRewardManager {
 
     public void showRewardedAd(Runnable onReward, Runnable onFail) {
         this.onRewardCallback = onReward;
+        this.onFailCallback = onFail;
+        this.rewardGranted = false;
 
         if (rewardedAd != null && context instanceof Activity) {
             rewardedAd.show((Activity) context);

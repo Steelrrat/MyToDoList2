@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:pathData="M5,2 H19 A3,3 0,0 1,22 5 V19 A3,3 0,0 1,19 22 H5 A3,3 0,0 1,2 19 V5 A3,3 0,0 1,5 2 Z"
+        android:fillColor="@color/checkbox_fill"
+        android:strokeColor="@color/checkbox_border"
+        android:strokeWidth="2" />
+
+</vector>

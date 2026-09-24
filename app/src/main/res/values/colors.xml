@@ -1,14 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#F5F5F5</color>
+    <color name="background">#F7F7F5</color>
     <color name="surface">#FFFFFF</color>
-    <color name="text_primary">#333333</color>
-    <color name="text_secondary">#666666</color>
-    <color name="card_background">#F0F0F0</color>
+    <color name="text_primary">#161616</color>
+    <color name="text_secondary">#666662</color>
+    <color name="card_background">#FFFFFF</color>
     <color name="done_background">#D4EDDA</color>
     <color name="done_text">#155724</color>
     <color name="button_primary">#757575</color>
     <color name="button_selected">#9E9E9E</color>
     <color name="light_accent">#4CAF50</color>
     <color name="dark_accent">#2196F3</color>
+    <color name="surface_elevated">#F1F1EF</color>
+    <color name="action_primary">#171717</color>
+    <color name="action_primary_text">#FFFFFF</color>
+    <color name="action_primary_border">#171717</color>
+    <color name="action_secondary">#F1F1EF</color>
+    <color name="action_secondary_text">#161616</color>
+    <color name="action_border">#E2E2DE</color>
+    <color name="bottom_button_fill">#F7F7F5</color>
+    <color name="bottom_button_text">#161616</color>
+    <color name="bottom_button_border">#171717</color>
+
+    <color name="checkbox_fill">#FFFFFF</color>
+    <color name="checkbox_border">#5F6368</color>
+    <color name="checkbox_check">#171717</color>
+    <color name="dialog_control_fill">#F7F7F5</color>
+    <color name="dialog_control_border">#5F6368</color>
+    <color name="dialog_control_text">#161616</color>
+    <color name="dialog_icon">#161616</color>
+    <color name="dialog_action_bar">#D6D6D2</color>
 </resources>

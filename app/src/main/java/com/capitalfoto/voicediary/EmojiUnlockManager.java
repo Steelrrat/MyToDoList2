@@ -26,6 +26,12 @@ public class EmojiUnlockManager {
     };
 
     // ВСЕ СМАЙЛЫ (3 базовых + 20 новых + 14 дополнительных = 37)
+    // APPEND-ONLY: добавлены после исходных 37 смайлов.
+    // Порядок существующих значений не изменять.
+    public static final String[] EXTENSION_EMOJIS = {
+            "🧠", "📌", "📝", "🛒",
+            "☕", "🌈", "🏠", "📚"
+    };
     public static final String[] ALL_EMOJIS = {
             // 3 базовых смайла
             "❤️", "⚡", "😺",
@@ -66,6 +72,12 @@ public class EmojiUnlockManager {
                     all.add(emoji);
                 }
             }
+            // Append-only extension after the original 37 emojis.
+            for (String emoji : EXTENSION_EMOJIS) {
+                if (!all.contains(emoji)) {
+                    all.add(emoji);
+                }
+            }
         } else {
             // Только 3 базовых смайла
             all.add("❤️");
@@ -81,12 +93,12 @@ public class EmojiUnlockManager {
     }
 
     public int getNewUnlockedCount() {
-        return areAllNewEmojisUnlocked() ? NEW_EMOJIS.length + EXTRA_EMOJIS.length : 0;
+        return areAllNewEmojisUnlocked() ? NEW_EMOJIS.length + EXTRA_EMOJIS.length + EXTENSION_EMOJIS.length : 0;
     }
 
     public int getTotalCount() {
         if (areAllNewEmojisUnlocked()) {
-            return ALL_EMOJIS.length;
+            return ALL_EMOJIS.length + EXTENSION_EMOJIS.length;
         } else {
             return 3;
         }

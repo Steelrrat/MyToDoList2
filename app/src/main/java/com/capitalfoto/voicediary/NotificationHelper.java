@@ -73,6 +73,14 @@ public class NotificationHelper {
             calendar.set(Calendar.MILLISECOND, 0);
 
             if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+                if (task.getDate() != null) {
+                    // The task has an explicit date and that reminder time has already passed.
+                    // Do not silently move a dated task to the next day.
+                    return;
+                }
+
+                // A task without an explicit date keeps the previous behavior:
+                // use the next occurrence of the selected time.
                 calendar.add(Calendar.DAY_OF_YEAR, 1);
             }
 

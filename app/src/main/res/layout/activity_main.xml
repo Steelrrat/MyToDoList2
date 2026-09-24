@@ -10,34 +10,75 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="88dp"
         android:clipToPadding="false"
         android:scrollbars="vertical" />
 
-    <!-- Кнопка переключения темы - используем обычный Button -->
-    <Button
-        android:id="@+id/fabTheme"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_gravity="bottom|start"
-        android:layout_margin="16dp"
-        android:text="🌙"
-        android:textSize="22sp"
-        android:textColor="#FFFFFF"
-        android:background="@drawable/circle_button"
-        android:contentDescription="Переключить тему" />
-
-    <!-- Кнопка Добавить задачу -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAdd"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_input_add"
-        android:contentDescription="Добавить задачу"
-        app:fabSize="normal"
-        app:backgroundTint="#757575"
-        app:tint="#FFFFFF" />
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/fabTheme"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="Тёмная тема"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            android:textStyle="normal"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0"
+            android:textColor="@color/bottom_button_text"
+            android:contentDescription="Переключить тему"
+            app:backgroundTint="@color/bottom_button_fill"
+            app:cornerRadius="26dp"
+            app:strokeColor="@color/bottom_button_border"
+            app:strokeWidth="1dp"
+            app:elevation="0dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/fabAdd"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="Новая задача"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            android:textStyle="normal"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0"
+            android:textColor="@color/bottom_button_text"
+            android:contentDescription="Добавить задачу"
+            app:backgroundTint="@color/bottom_button_fill"
+            app:cornerRadius="26dp"
+            app:strokeColor="@color/bottom_button_border"
+            app:strokeWidth="1dp"
+            app:elevation="0dp" />
+
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

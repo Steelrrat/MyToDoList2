@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/colorSurface">
+    android:background="@color/surface"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,84 +18,91 @@
             android:text="Новая задача"
             android:textSize="22sp"
             android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="@color/text_primary"
             android:gravity="center"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="18dp" />
 
-        <!-- Карточка с текстом задачи и кнопкой голосового ввода -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceVariant"
-            android:layout_marginBottom="20dp">
+            app:cardBackgroundColor="@color/dialog_control_fill"
+            app:strokeColor="@color/dialog_control_border"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="12dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp">
+                android:orientation="vertical"
+                android:padding="12dp">
 
                 <EditText
                     android:id="@+id/editTaskText"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:hint="Что нужно сделать?"
-                    android:inputType="textMultiLine"
-                    android:maxLines="4"
-                    android:padding="12dp"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:minLines="2"
+                    android:maxLines="20"
+                    android:gravity="top|start"
+                    android:scrollbars="vertical"
+                    android:padding="10dp"
                     android:textSize="16sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textColorHint="?attr/colorOnSurfaceVariant"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
                     android:background="@android:color/transparent" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonVoice"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:text="🎤"
-                    android:textSize="24sp"
-                    android:backgroundTint="?attr/colorPrimary"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginStart="8dp"
-                    android:padding="0dp"
-                    style="@style/Widget.Material3.Button" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="8dp"
+                    android:text="Диктовать"
+                    android:textSize="14sp"
+                    android:textColor="@color/dialog_control_text"
+                    android:fontFamily="sans-serif-medium"
+                    android:textAllCaps="false"
+                    app:icon="@drawable/ic_mic"
+                    app:iconTint="@color/dialog_icon"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:backgroundTint="@color/dialog_control_fill"
+                    app:strokeColor="@color/dialog_control_border"
+                    app:strokeWidth="1dp"
+                    app:cornerRadius="16dp" />
 
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        </androidx.cardview.widget.CardView>
-
-        <!-- Скругленная карточка для ДАТЫ -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/dateCardView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceVariant"
-            android:layout_marginBottom="12dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="10dp"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/dialog_control_fill"
+            app:strokeColor="@color/dialog_control_border"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_height="match_parent"
                 android:gravity="center_vertical"
-                android:padding="16dp">
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="14dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="📅"
-                    android:textSize="20sp"
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_calendar"
+                    android:contentDescription="Дата"
                     android:layout_marginEnd="12dp" />
 
                 <TextView
@@ -103,47 +111,44 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Введите дату"
-                    android:textSize="14sp"
-                    android:fontFamily="monospace"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorPrimary" />
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/dialog_control_text" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textSize="24sp"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
-
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:contentDescription="@null" />
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        </androidx.cardview.widget.CardView>
-
-        <!-- Скругленная карточка для ВРЕМЕНИ -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/timeCardView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceVariant"
-            android:layout_marginBottom="16dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="10dp"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/dialog_control_fill"
+            app:strokeColor="@color/dialog_control_border"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_height="match_parent"
                 android:gravity="center_vertical"
-                android:padding="16dp">
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="14dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="⏰"
-                    android:textSize="20sp"
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_schedule"
+                    android:contentDescription="Время"
                     android:layout_marginEnd="12dp" />
 
                 <TextView
@@ -152,47 +157,46 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Введите время"
-                    android:textSize="14sp"
-                    android:fontFamily="monospace"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorPrimary" />
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/dialog_control_text" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textSize="24sp"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
-
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:contentDescription="@null" />
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        </androidx.cardview.widget.CardView>
-
-        <!-- КАРТОЧКА ДЛЯ ПРИКРЕПЛЕНИЯ ФАЙЛА (вместо кнопки) -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/buttonAttachCard"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceVariant"
-            android:layout_marginBottom="16dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="12dp"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/dialog_control_fill"
+            app:strokeColor="@color/dialog_control_border"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_height="match_parent"
                 android:gravity="center_vertical"
-                android:padding="16dp">
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="14dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:text="📎"
-                    android:textSize="20sp"
+                    android:textSize="19sp"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
                     android:layout_marginEnd="12dp" />
 
                 <TextView
@@ -200,63 +204,62 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Прикрепите файл"
-                    android:textSize="14sp"
-                    android:fontFamily="monospace"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorPrimary" />
+                    android:text="Прикрепить файл"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/dialog_control_text" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textSize="24sp"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
-
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:contentDescription="@null" />
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        </androidx.cardview.widget.CardView>
-
-        <!-- Блок управления файлом -->
         <LinearLayout
             android:id="@+id/fileManageLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="12dp"
             android:visibility="gone">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Прикреплённый файл:"
-                android:textSize="14sp"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:layout_marginBottom="8dp" />
+                android:text="Прикреплённый файл"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="6dp" />
 
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/fileCardView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                android:layout_height="56dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/dialog_control_fill"
+                app:strokeColor="@color/dialog_control_border"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:layout_height="match_parent"
                     android:gravity="center_vertical"
-                    android:padding="16dp">
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="8dp">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
                         android:text="📎"
-                        android:textSize="20sp"
+                        android:textSize="19sp"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
                         android:layout_marginEnd="12dp" />
 
                     <TextView
@@ -264,30 +267,26 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text=""
+                        android:maxLines="1"
+                        android:ellipsize="middle"
                         android:textSize="14sp"
-                        android:fontFamily="monospace"
-                        android:textStyle="bold"
-                        android:textColor="?attr/colorPrimary" />
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/dialog_control_text" />
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="✖"
                         android:id="@+id/buttonRemoveFile"
-                        android:textSize="18sp"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:padding="8dp"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:text="×"
+                        android:textSize="24sp"
+                        android:textColor="@color/text_secondary"
+                        android:gravity="center"
                         android:clickable="true"
                         android:focusable="true"
                         android:background="?attr/selectableItemBackgroundBorderless" />
-
                 </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
     </LinearLayout>
-
 </ScrollView>

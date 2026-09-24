@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.AppCompatCheckBox;
 import java.io.File;
 import java.util.ArrayList;
 
@@ -61,6 +62,23 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Task task = tasks.get(position);
+
+        holder.textViewCheckbox.setOnCheckedChangeListener(null);
+        holder.textViewCheckbox.setChecked(task.isDone());
+
+        holder.textViewCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            int currentPosition = holder.getBindingAdapterPosition();
+
+            if (currentPosition == RecyclerView.NO_POSITION || doneListener == null) {
+                return;
+            }
+
+            Task currentTask = tasks.get(currentPosition);
+
+            if (currentTask.isDone() != isChecked) {
+                doneListener.onToggleDone(currentPosition);
+            }
+        });
         holder.textViewTask.setText(task.getText());
 
         String dateStr = task.getFormattedDate();
@@ -71,16 +89,16 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         }
 
         if (task.isDone()) {
-            holder.textViewCheckbox.setText("☑");
+
             holder.cardView.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.done_background));
             holder.textViewTask.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.done_text));
         } else {
-            holder.textViewCheckbox.setText("☐");
+
             holder.cardView.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.card_background));
             holder.textViewTask.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.text_primary));
         }
 
-        holder.textViewCheckbox.setOnClickListener(v -> doneListener.onToggleDone(position));
+
 
         // Отображаем эмодзи с возможностью клика
         String reaction = task.getReaction();
@@ -140,7 +158,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         CardView cardView;
-        TextView textViewCheckbox;
+        AppCompatCheckBox textViewCheckbox;
         TextView textViewTask;
         TextView textViewDate;
         TextView textViewReaction;
