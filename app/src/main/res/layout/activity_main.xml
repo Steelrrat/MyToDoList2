@@ -23,6 +23,7 @@
         android:layout_gravity="bottom"
         android:orientation="horizontal"
         android:gravity="center"
+        android:weightSum="2.352941"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingBottom="16dp">
@@ -30,9 +31,9 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/fabTheme"
             android:layout_width="0dp"
-            android:layout_height="52dp"
+            android:layout_height="46dp"
             android:layout_weight="1"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="8dp"
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:insetTop="0dp"
@@ -48,7 +49,7 @@
             android:textColor="@color/bottom_button_text"
             android:contentDescription="Переключить тему"
             app:backgroundTint="@color/bottom_button_fill"
-            app:cornerRadius="26dp"
+            app:cornerRadius="11dp"
             app:strokeColor="@color/bottom_button_border"
             app:strokeWidth="1dp"
             app:elevation="0dp" />
@@ -56,9 +57,9 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/fabAdd"
             android:layout_width="0dp"
-            android:layout_height="52dp"
+            android:layout_height="46dp"
             android:layout_weight="1"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="8dp"
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:insetTop="0dp"
@@ -74,7 +75,7 @@
             android:textColor="@color/bottom_button_text"
             android:contentDescription="Добавить задачу"
             app:backgroundTint="@color/bottom_button_fill"
-            app:cornerRadius="26dp"
+            app:cornerRadius="11dp"
             app:strokeColor="@color/bottom_button_border"
             app:strokeWidth="1dp"
             app:elevation="0dp" />
