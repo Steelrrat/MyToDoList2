@@ -41,7 +41,7 @@ public class BootReceiver extends BroadcastReceiver {
 
             if (text == null || text.trim().isEmpty()) continue;
             if (done) continue;
-            if (hour < 0 || minute < 0) continue;
+            if (dateMillis <= 0 && (hour < 0 || minute < 0)) continue;
             if (id == null || id.isEmpty()) continue;
 
             Date date = dateMillis > 0

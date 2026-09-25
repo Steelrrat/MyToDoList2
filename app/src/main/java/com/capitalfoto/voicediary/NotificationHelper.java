@@ -56,32 +56,9 @@ public class NotificationHelper {
             }
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, flags);
 
-            Calendar calendar = Calendar.getInstance();
-
-            if (task.getDate() != null) {
-                calendar.setTime(task.getDate());
-            }
-
-            if (task.hasTime()) {
-                calendar.set(Calendar.HOUR_OF_DAY, task.getHour());
-                calendar.set(Calendar.MINUTE, task.getMinute());
-            } else {
-                calendar.set(Calendar.HOUR_OF_DAY, 9);
-                calendar.set(Calendar.MINUTE, 0);
-            }
-            calendar.set(Calendar.SECOND, 0);
-            calendar.set(Calendar.MILLISECOND, 0);
-
-            if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
-                if (task.getDate() != null) {
-                    // The task has an explicit date and that reminder time has already passed.
-                    // Do not silently move a dated task to the next day.
-                    return;
-                }
-
-                // A task without an explicit date keeps the previous behavior:
-                // use the next occurrence of the selected time.
-                calendar.add(Calendar.DAY_OF_YEAR, 1);
+            Calendar calendar = task.getNotificationCalendar();
+            if (calendar == null || calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+                return;
             }
 
             long triggerTime = calendar.getTimeInMillis();

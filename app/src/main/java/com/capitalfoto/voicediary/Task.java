@@ -51,6 +51,7 @@ public class Task implements Serializable {
     public int getHour() { return hour; }
     public int getMinute() { return minute; }
     public boolean hasTime() { return hour >= 0 && minute >= 0; }
+    public boolean hasReminder() { return date != null || hasTime(); }
 
     public void setReaction(String reaction) {
         // Сохраняем как есть - это может быть эмодзи или null
@@ -93,25 +94,23 @@ public class Task implements Serializable {
     }
 
     public Calendar getNotificationCalendar() {
+        if (!hasReminder()) {
+            return null;
+        }
+
         Calendar cal = Calendar.getInstance();
         if (date != null) {
             cal.setTime(date);
-        } else {
-            cal.setTime(new Date());
         }
+
         if (hasTime()) {
             cal.set(Calendar.HOUR_OF_DAY, hour);
             cal.set(Calendar.MINUTE, minute);
-            cal.set(Calendar.SECOND, 0);
-            cal.set(Calendar.MILLISECOND, 0);
-        } else {
-            cal.set(Calendar.HOUR_OF_DAY, 9);
-            cal.set(Calendar.MINUTE, 0);
-            cal.set(Calendar.SECOND, 0);
-            cal.set(Calendar.MILLISECOND, 0);
         }
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
 
-        if (cal.getTimeInMillis() < System.currentTimeMillis()) {
+        if (date == null && cal.getTimeInMillis() <= System.currentTimeMillis()) {
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
         return cal;

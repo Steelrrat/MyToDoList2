@@ -65,6 +65,8 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.database.Cursor;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -197,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String tempStoredFilePath = null;
     private Date tempDate = null;
+    private boolean tempDateChangedForReminder = false;
     private int tempHour = -1;
     private int tempMinute = -1;
 
@@ -215,6 +218,9 @@ public class MainActivity extends AppCompatActivity {
     private final Object saveLock = new Object();
 
     private YandexRewardManager rewardManager;
+
+    private static final float ADD_DIALOG_BACKGROUND_BLUR_STRENGTH = 0.30f;
+    private static final float MAX_BACKGROUND_BLUR_RADIUS_DP = 40f;
 
 
     @Override
@@ -338,6 +344,7 @@ public class MainActivity extends AppCompatActivity {
                     task.setReaction(emoji);
                     saveTasksDebounced();
                     taskAdapter.notifyItemChanged(position);
+                    showSelectedEmojiToast(emoji);
                 }
         );
         emojiRecyclerView.setAdapter(adapter);
@@ -415,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void rescheduleAllNotifications() {
         for (Task task : taskList) {
-            if (task.hasTime() && !task.isDone()) {
+            if (task.hasReminder() && !task.isDone()) {
                 NotificationHelper.cancelNotification(this, task.getId());
                 NotificationHelper.scheduleNotification(this, task);
             }
@@ -975,6 +982,7 @@ public class MainActivity extends AppCompatActivity {
                     task.setReaction(emoji);
                     saveTasksDebounced();
                     taskAdapter.notifyDataSetChanged();
+                    showSelectedEmojiToast(emoji);
 
                     // Обновляем отображение в списке, но не показываем в диалоге
                     // (в диалоге больше нет блока с текущей реакцией)
@@ -998,6 +1006,10 @@ public class MainActivity extends AppCompatActivity {
 
         emojiLp.height = heightPx;
         recyclerView.setLayoutParams(emojiLp);
+    }
+
+    private void showSelectedEmojiToast(String emoji) {
+        Toast.makeText(this, "Смайл выбран: " + emoji, Toast.LENGTH_SHORT).show();
     }
 
     private void showRewardedAdForUnlockAll(Runnable onUnlocked) {
@@ -1179,6 +1191,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAddDialog() {
         tempDate = null;
+        tempDateChangedForReminder = false;
         tempStoredFilePath = null;
         tempHour = -1;
         tempMinute = -1;
@@ -1252,15 +1265,17 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("Добавить", (d, which) -> {
                     String text = editText.getText().toString().trim();
                     if (!text.isEmpty()) {
-                        Task newTask = new Task(text, tempDate, tempStoredFilePath, null, false, tempHour, tempMinute);
+                        Date reminderDate = resolveReminderDate();
+                        Task newTask = new Task(text, reminderDate, tempStoredFilePath, null, false, tempHour, tempMinute);
                         newTask.setId(UUID.randomUUID().toString());
                         taskList.add(newTask);
                         sortTasks();
                         taskAdapter.notifyDataSetChanged();
                         saveTasksDebounced();
 
-                        if (tempHour >= 0 && tempMinute >= 0) {
+                        if (newTask.hasReminder()) {
                             NotificationHelper.scheduleNotification(MainActivity.this, newTask);
+                            showNotificationTimeToast(newTask);
                         }
                     } else {
                         Toast.makeText(MainActivity.this, "Введите задачу", Toast.LENGTH_SHORT).show();
@@ -1277,13 +1292,18 @@ public class MainActivity extends AppCompatActivity {
             if (negativeButton != null) negativeButton.setTextColor(ContextCompat.getColor(this, R.color.dialog_control_text));
         });
 
-        dialog.setOnDismissListener(dialogInterface -> clearDialogReferences());
+        dialog.setOnDismissListener(dialogInterface -> {
+            setAddDialogBackgroundBlur(false);
+            clearDialogReferences();
+        });
         currentDialog = dialog;
         dialog.show();
+        setAddDialogBackgroundBlur(true);
     }
 
     private void showEditDialog(int pos, Task oldTask) {
         tempDate = oldTask.getDate();
+        tempDateChangedForReminder = false;
         tempStoredFilePath = oldTask.getFilePath();
         tempHour = oldTask.getHour();
         tempMinute = oldTask.getMinute();
@@ -1364,7 +1384,8 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("Сохранить", (d, which) -> {
                     String newText = editText.getText().toString().trim();
                     if (!newText.isEmpty()) {
-                        Task updatedTask = new Task(newText, tempDate, tempStoredFilePath,
+                        Date reminderDate = resolveReminderDate();
+                        Task updatedTask = new Task(newText, reminderDate, tempStoredFilePath,
                                 oldTask.getReaction(), oldTask.isDone(), tempHour, tempMinute);
                         updatedTask.setId(oldTask.getId());
                         if (updatedTask.getId() == null || updatedTask.getId().isEmpty()) {
@@ -1380,7 +1401,7 @@ public class MainActivity extends AppCompatActivity {
                             NotificationHelper.cancelNotification(MainActivity.this, oldTask.getId());
                         }
 
-                        if (tempHour >= 0 && tempMinute >= 0 && !updatedTask.isDone()) {
+                        if (updatedTask.hasReminder() && !updatedTask.isDone()) {
                             NotificationHelper.scheduleNotification(MainActivity.this, updatedTask);
                         }
                     } else {
@@ -1408,6 +1429,30 @@ public class MainActivity extends AppCompatActivity {
         currentDialog = null;
     }
 
+    private void setAddDialogBackgroundBlur(boolean enabled) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return;
+        }
+
+        View contentView = findViewById(android.R.id.content);
+        if (contentView == null) {
+            return;
+        }
+
+        if (enabled) {
+            float blurRadiusPx = MAX_BACKGROUND_BLUR_RADIUS_DP
+                    * ADD_DIALOG_BACKGROUND_BLUR_STRENGTH
+                    * getResources().getDisplayMetrics().density;
+            contentView.setRenderEffect(RenderEffect.createBlurEffect(
+                    blurRadiusPx,
+                    blurRadiusPx,
+                    Shader.TileMode.CLAMP
+            ));
+        } else {
+            contentView.setRenderEffect(null);
+        }
+    }
+
     private void startVoiceInput() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -1420,34 +1465,84 @@ public class MainActivity extends AppCompatActivity {
         voiceLauncher.launch(intent);
     }
 
-    private void showNotificationTimeToast() {
-        if (tempHour >= 0 && tempMinute >= 0) {
-            Calendar now = Calendar.getInstance();
-            Calendar notifyTime = Calendar.getInstance();
-
-            if (tempDate != null) {
-                notifyTime.setTime(tempDate);
-            }
-            notifyTime.set(Calendar.HOUR_OF_DAY, tempHour);
-            notifyTime.set(Calendar.MINUTE, tempMinute);
-            notifyTime.set(Calendar.SECOND, 0);
-
-            long diffMillis = notifyTime.getTimeInMillis() - now.getTimeInMillis();
-            long diffMinutes = diffMillis / (60 * 1000);
-            long diffHours = diffMinutes / 60;
-            diffMinutes = diffMinutes % 60;
-
-            String timeMessage;
-            if (diffHours > 0) {
-                timeMessage = String.format("🔔 Уведомление через %d ч %d мин", diffHours, diffMinutes);
-            } else if (diffMinutes > 0) {
-                timeMessage = String.format("🔔 Уведомление через %d мин", diffMinutes);
-            } else {
-                timeMessage = "🔔 Уведомление сработает менее чем через минуту";
-            }
-
-            Toast.makeText(this, timeMessage, Toast.LENGTH_LONG).show();
+    private Date resolveReminderDate() {
+        if (tempDate == null || (tempHour >= 0 && tempMinute >= 0)) {
+            return tempDate;
         }
+
+        if (!tempDateChangedForReminder) {
+            return tempDate;
+        }
+
+        Calendar selectedDate = Calendar.getInstance();
+        selectedDate.setTime(tempDate);
+
+        Calendar now = Calendar.getInstance();
+        selectedDate.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY));
+        selectedDate.set(Calendar.MINUTE, now.get(Calendar.MINUTE));
+        selectedDate.set(Calendar.SECOND, 0);
+        selectedDate.set(Calendar.MILLISECOND, 0);
+        return selectedDate.getTime();
+    }
+
+    private void showNotificationTimeToast(Task task) {
+        Calendar notifyTime = task.getNotificationCalendar();
+        if (notifyTime == null) {
+            return;
+        }
+
+        long diffMillis = notifyTime.getTimeInMillis() - System.currentTimeMillis();
+        if (diffMillis <= 0) {
+            Toast.makeText(this, "Выберите будущие дату и время", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        long totalMinutes = Math.max(1, (diffMillis + 59_999) / 60_000);
+        long days = totalMinutes / (24 * 60);
+        long hours = (totalMinutes % (24 * 60)) / 60;
+        long minutes = totalMinutes % 60;
+
+        ArrayList<String> parts = new ArrayList<>();
+        if (days > 0) {
+            parts.add(days + " " + getRussianPlural(days, "день", "дня", "дней"));
+        }
+        if (hours > 0) {
+            parts.add(hours + " " + getRussianPlural(hours, "час", "часа", "часов"));
+        }
+        if (minutes > 0) {
+            parts.add(minutes + " " + getRussianPlural(minutes, "минута", "минуты", "минут"));
+        }
+
+        String duration;
+        if (parts.size() == 1) {
+            duration = parts.get(0);
+        } else if (parts.size() == 2) {
+            duration = parts.get(0) + " и " + parts.get(1);
+        } else {
+            duration = parts.get(0) + ", " + parts.get(1) + " и " + parts.get(2);
+        }
+
+        Toast.makeText(
+                this,
+                "🔔 Напоминание сработает через " + duration,
+                Toast.LENGTH_LONG
+        ).show();
+    }
+
+    private String getRussianPlural(long value, String one, String few, String many) {
+        long lastTwoDigits = value % 100;
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+            return many;
+        }
+
+        long lastDigit = value % 10;
+        if (lastDigit == 1) {
+            return one;
+        }
+        if (lastDigit >= 2 && lastDigit <= 4) {
+            return few;
+        }
+        return many;
     }
 
     private void showDatePicker(TextView targetTextView) {
@@ -1459,6 +1554,7 @@ public class MainActivity extends AppCompatActivity {
             selected.set(Calendar.MILLISECOND, 0);
 
             tempDate = selected.getTime();
+            tempDateChangedForReminder = true;
             updateDateDisplay(targetTextView);
 
             if (currentDialog != null) {
@@ -1515,10 +1611,6 @@ public class MainActivity extends AppCompatActivity {
 
             updateDateDisplay(txtDate);
             updateTimeDisplay(txtTime);
-
-            if (tempDate == null) {
-                showNotificationTimeToast();
-            }
 
         }, hour, minute, true).show();
     }
